@@ -45,6 +45,46 @@ Just click on the .jar file icon.
 
 ## How to get the source code
 
+### Git
+
+This repository is not the only one mirroring https://josm.openstreetmap.de/svn/trunk. There is e.g. also an “official” (meaning published in the GitHub-organization named “openstreetmap”) git repository for JOSM on GitHub, that is automatically updated, so it might be more up to date than this repository here.
+
+__Note:__ The two repositories are __not__ compatible in the sense that the SHA1-hashes of the git-commits are different for commits that mirror the very same SVN commit. So best choose one of the repositories and stick with it in the future, or you might face some problems (merge conflicts, …).
+
+Here is a quick comparison of both repositories:
+
+<table>
+<tr><td></td><th><a href="https://github.com/floscher/josm">floscher/josm</a></th><th><a href="https://github.com/openstreetmap/josm">openstreetmap/josm</a></th></tr>
+<tr><th>Imported versions</th><td>since version 1</td><td>since version 321</td></tr>
+<tr><th>Imported branches</th><td>all (`trunk` and `0.5`)</td><td>`trunk`</td></tr>
+<tr><th>Importer</th><td>git-svn</td><td>git-svn</td></tr>
+<tr><th>Update mode</th><td>manual (irregularly)</td><td>automated (right after SVN has changed)</td></tr>
+<tr><th>Marks stable releases?</th><td>yes, with git-tags and GitHub releases<br>(starting with version 15.2)</td><td>no</td></tr>
+</table>
+
+#### floscher/josm
+
+Download the git repository via the command line:
+```shell
+git clone git@github.com:floscher/josm.git
+```
+This creates a new folder called `josm` inside the directory where you executed the command. This folder contains the full history of the git repository.
+
+If you just need some of the latest revisions, use:
+```shell
+git clone --depth=N git@github.com:floscher/josm.git
+```
+where N is the number of revisions you want (e.g. 10 for the latest ten revisions).
+
+#### openstreetmap/josm
+
+For downloading from the official repo, use:
+```shell
+git clone git@github.com:openstreetmap/josm.git
+```
+
+### SVN
+
 Download it directly from the subversion at
 https://josm.openstreetmap.de/svn/trunk. To use the command line subversion
 client, type
