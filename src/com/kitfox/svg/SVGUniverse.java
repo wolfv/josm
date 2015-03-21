@@ -3,16 +3,16 @@
  * Copyright (c) 2004, Mark McKay
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or 
+ * Redistribution and use in source and binary forms, with or
  * without modification, are permitted provided that the following
  * conditions are met:
  *
- *   - Redistributions of source code must retain the above 
+ *   - Redistributions of source code must retain the above
  *     copyright notice, this list of conditions and the following
  *     disclaimer.
  *   - Redistributions in binary form must reproduce the above
  *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials 
+ *     disclaimer in the documentation and/or other materials
  *     provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -26,8 +26,8 @@
  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE. 
- * 
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  * Mark McKay can be contacted at mark@kitfox.com.  Salamander and other
  * projects can be found at http://www.kitfox.com
  *
@@ -61,6 +61,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -190,10 +191,9 @@ public class SVGUniverse implements Serializable
 
             if (content.startsWith("base64"))
             {
-                content = content.substring(6);
                 try
                 {
-                    byte[] buf = new sun.misc.BASE64Decoder().decodeBuffer(content);
+                    byte[] buf = DatatypeConverter.parseBase64Binary(content.substring(6));
                     ByteArrayInputStream bais = new ByteArrayInputStream(buf);
                     BufferedImage img = ImageIO.read(bais);
 
@@ -213,7 +213,8 @@ public class SVGUniverse implements Serializable
                     loadedImages.put(url, ref);
 
                     return url;
-                } catch (IOException ex)
+                }
+                catch (IOException | IllegalArgumentException ex)
                 {
                     Logger.getLogger(SVGConst.SVG_LOGGER).log(Level.WARNING,
                         "Could not decode inline image", ex);
@@ -627,22 +628,22 @@ public class SVGUniverse implements Serializable
 
     /**
      * Get list of uris of all loaded documents and subdocuments.
-     * @return 
+     * @return
      */
     public ArrayList getLoadedDocumentURIs()
     {
         return new ArrayList(loadedDocs.keySet());
     }
-    
+
     /**
      * Remove loaded document from cache.
-     * @param uri 
+     * @param uri
      */
     public void removeDocument(URI uri)
     {
         loadedDocs.remove(uri);
     }
-    
+
     public boolean isVerbose()
     {
         return verbose;
