@@ -154,17 +154,17 @@ Build-Date: ${build.tstamp}
             <option value="-Dcom.apple.mrj.application.apple.menu.about.name=JOSM"/>
             <option value="-Dcom.apple.smallTabs=true"/>
         </bundleapp>
-        
+
         <!-- appbundler lacks the possibility of defining our own keys or using a template, so update the .plist manually -->
         <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="tools/xmltask.jar"/>
-        
+
         <xmltask source="${bundle.outdir}/JOSM.app/Contents/Info.plist" dest="${bundle.outdir}/JOSM.app/Contents/Info.plist" indent="false">
             <!-- remove empty CFBundleDocumentTypes definition -->
             <remove path="/plist/dict/key[text()='CFBundleDocumentTypes']|/plist/dict/key[text()='CFBundleDocumentTypes']/following-sibling::array[1]"/>
             <!-- insert our own keys -->
             <insert position="before" path="/plist/dict/key[1]" file="macosx/JOSM.app/Contents/Info.plist_template.xml" />
         </xmltask>
-        
+
         <!-- create ZIP file with MacOS X application bundle -->
         <zip destfile="${bundle.outdir}/josm-custom-macosx.zip" update="true">
             <zipfileset dir="." includes="CONTRIBUTION README LICENSE"/>
@@ -222,7 +222,7 @@ Build-Date: ${build.tstamp}
             <compilerarg value="-XDignore.symbol.file"/>
         </javac>
         <!-- JMapViewer/JOSM -->
-        <javac srcdir="${src.dir}" excludes="com/**,oauth/**,org/apache/commons/**,org/glassfish/**,org/openstreetmap/gui/jmapviewer/Demo.java" 
+        <javac srcdir="${src.dir}" excludes="com/**,oauth/**,org/apache/commons/**,org/glassfish/**,org/openstreetmap/gui/jmapviewer/Demo.java"
             destdir="build" target="1.7" source="1.7" debug="on" includeantruntime="false" createMissingPackageInfoClass="false" encoding="UTF-8">
             <compilerarg value="-Xlint:cast"/>
             <compilerarg value="-Xlint:deprecation"/>
@@ -253,9 +253,9 @@ Build-Date: ${build.tstamp}
         <mkdir dir="dist"/>
     </target>
     <target name="javadoc">
-        <javadoc destdir="javadoc" 
+        <javadoc destdir="build/javadoc"
                 sourcepath="${src.dir}"
-                encoding="UTF-8"    
+                encoding="UTF-8"
                 packagenames="org.openstreetmap.josm.*,org.openstreetmap.gui.jmapviewer.*"
                 windowtitle="JOSM"
                 use="true"
@@ -370,7 +370,7 @@ Build-Date: ${build.tstamp}
             </jacoco:coverage>
         </sequential>
     </macrodef>
-    <target name="test" depends="test-compile" 
+    <target name="test" depends="test-compile"
         description="Run unit, functional and performance tests. OSM API (TEST) account shall be set with -Dosm.username and -Dosm.password">
         <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml" classpath="tools/jacocoant.jar" />
         <call-junit testfamily="unit"/>
@@ -491,7 +491,7 @@ Build-Date: ${build.tstamp}
                 <striplinebreaks/>
                 <tokenfilter>
                     <replaceregex pattern="\|$" replace="" flags="gi"/>
-                </tokenfilter>    
+                </tokenfilter>
             </filterchain>
         </loadresource>
         <delete>
