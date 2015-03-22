@@ -60,6 +60,7 @@ Here is a quick comparison of both repositories:
 <tr><th>Importer</th><td>git-svn</td><td>git-svn</td></tr>
 <tr><th>Update mode</th><td>manual (irregularly)</td><td>automated (right after SVN has changed)</td></tr>
 <tr><th>Marks stable releases?</th><td>yes, with git-tags and GitHub releases<br>(starting with version 15.2)</td><td>no</td></tr>
+<tr><th>Handling of svn externals</th><td>Replaced by git submodules</td><td>Actual contents of external location inserted by mirroring bot</td></tr>
 </table>
 
 #### floscher/josm

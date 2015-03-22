@@ -1,0 +1,18 @@
+[submodule "vendor/apache-commons-compress"]
+	path = vendor/apache-commons-compress
+	url = git@github.com:apache/commons-compress.git
+[submodule "vendor/jmapviewer"]
+	path = vendor/jmapviewer
+	url = git@github.com:floscher/jmapviewer.git
+[submodule "vendor/xz-java"]
+	path = vendor/xz-java
+	url = http://git.tukaani.org/xz-java.git
+[submodule "vendor/osm-map-icons"]
+	path = vendor/osm-map-icons
+	url = git@github.com:openstreetmap/map-icons.git
+[submodule "vendor/stdutils"]
+	path = vendor/stdutils
+	url = git@github.com:lordmulder/stdutils.git
+[submodule "vendor/oauth-signpost"]
+	path = vendor/oauth-signpost
+	url = git@github.com:floscher/signpost.git
