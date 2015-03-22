@@ -103,7 +103,7 @@ Build-Date: ${build.tstamp}
     <target name="dist" depends="compile,create-revision,check-schemas">
         <echo>Revision ${version.entry.commit.revision}</echo>
         <copy file="CONTRIBUTION" todir="build"/>
-        <copy file="README" todir="build"/>
+        <copy file="README.md" todir="build"/>
         <copy file="LICENSE" todir="build"/>
         <!-- create josm-custom.jar -->
         <delete file="dist/josm-custom.jar"/>

@@ -1,19 +1,19 @@
-Supplemental information for JOSM -- the Java OpenStreetMap Editor
+# JOSM – the Java OpenStreetMap Editor
 
-=============================================================================
-            I. Install & Launch
-=============================================================================
+![Banner](/images_nodist/logo/bannerhorizontal.jpg)
 
-Installation notes
-------------------
+# I. Install & Launch
+
+## Installation notes
+
 To run JOSM, you need:
 
-* The JOSM .jar file, e.g., josm-tested.jar or josm-latest.jar
-* Java Runtime Environment (JRE) 7, or later.
+* The JOSM .jar file, e.g., [josm-tested.jar](//josm.openstreetmap.de/josm-tested.jar) or [josm-latest.jar](//josm.openstreetmap.de/josm-latest.jar)
+* [Java Runtime Environment (JRE) 7, or later](//java.com/download).
 
 
-How to get Java Runtime Environment
------------------------------------
+## How to get Java Runtime Environment
+
 You need JRE Version 7, or later.
 
 Microsoft Windows and Apple Mac OS X users should visit https://www.java.com
@@ -24,37 +24,38 @@ There is a Linux binary installer, which you must execute from a console, or
 use the mechanism of your distribution's packaging system.
 
 
-How to launch
--------------
-Microsoft Windows users launch by double-clicking on the .jar file.
-If this does not work, open a command shell and type
-"java -jar josm-latest.jar"  in the directory that holds the file. (Please
-replace josm-latest.jar with the name of your .jar file, if you aren't using
-the latest version.)
+## How to launch
+### Windows
+Launch by double-clicking on the .jar file.
+If this does not work, open a command shell and type the following in the directory that holds the file (Please replace josm-latest.jar with the name of your .jar file, if it is not named `josm-latest.jar`):
+```shell
+java -jar josm-latest.jar
+```
+### Linux
+Open a shell, go to the file directory and type the following to launch:
+```
+java -jar josm-latest.jar
+```
+If this does not work, try to set your JAVA_HOME variable to the java executable location (the root location, not the bin).
 
-Under Linux, open a shell, go to the file directory and type
-"java -jar josm-latest.jar" to launch. If this does not work, try to set
-your JAVA_HOME variable to the java executable location (the root location,
-not the bin).
+### MacOS X
+Just click on the .jar file icon.
 
-MacOS X users just click on the .jar file icon.
+# II. Development
 
-=============================================================================
-            II. Development
-=============================================================================
+## How to get the source code
 
-How to get the source code
---------------------------
 Download it directly from the subversion at
 https://josm.openstreetmap.de/svn/trunk. To use the command line subversion
 client, type
 
+```shell
 svn co https://josm.openstreetmap.de/svn/trunk josm
+```
 
-
-Files & directories
--------------------
+## Files & directories
 This is an overview of the files and directories in the JOSM code repository:
+```
 - build.xml                 ant build file (standard way to create a JOSM binary)
 - CONTRIBUTION              list of major code contributors
 - data/                     data files that will be included in the JOSM jar file
@@ -115,62 +116,65 @@ This is an overview of the files and directories in the JOSM code repository:
     - unit/                 unit tests (source code)
 - tools/                    libraries and tools that help in the development process
     - animal-sniffer-ant-tasks-1.13.jar
-                            used to build and check code signatures to ensure plugins binary compatibility 
+                            used to build and check code signatures to ensure plugins binary compatibility
     - appbundler-1.0ea.jar  used to build Mac OS X package for Oracle Java 7
     - findbugs/             libs and config files for findbugs (automatically detects common bugs and potential
                             problems in source code); can be launched as an ant target in build.xml
     - groovy-all-2.3.9.jar  used for some unit tests and various scripts
-    - jacocoant.jar         used to include coverage data into JUnit test reports 
+    - jacocoant.jar         used to include coverage data into JUnit test reports
     - javacc.jar            used in the build process to generate some .java files from a javacc source file
                             (src/org/openstreetmap/josm/gui/mappaint/mapcss/MapCSSParser.jj)
     - proguard.jar          optimize final binary jar - see build.xml (not used in production so far)
     - xmltask.jar           used to edit XML files from Ant for the OSX package
 - windows/                  files needed to create the Windows installer
+```
 
-The 'patches' directory
------------------------
+## The `patches` directory
+
 Some libraries that JOSM depends on, are patched for various reasons. The files in the patches directory can be used to roll back these customizations. This is useful in order to
 
  * inspect the changes
  * update to a newer version of the library but keep the modifications
 
-You can use 'quilt' to manage the patches. E.g. the following command applies all of them:
+You can use `quilt` to manage the patches. E.g. the following command applies all of them:
 
+```shell
  $ quilt push -a
+```
 
 Of course, it is also possible to apply the patch files manually one by one.
 
-Third party libraries
----------------------
+## Third party libraries
+
 There are some third party libraries which are directly included in the source code tree, in particular:
 
-* jmapviewer: Java component to browse a TMS map
+* __jmapviewer__: Java component to browse a TMS map<br>
     src/org/openstreetmap/gui (svn external)
-    -> http://svn.openstreetmap.org/applications/viewer/jmapviewer/
-* Apache commons codec: Better Base64 support
+    → http://svn.openstreetmap.org/applications/viewer/jmapviewer/
+* __Apache commons codec__: Better Base64 support<br>
     src/org/apache/commons/codec (svn external)
-    -> http://svn.apache.org/repos/asf/commons/proper/codec/trunk/src/main/java/org/apache/commons/codec
-* Apache commons compress: Support for bzip2 compression when opening files
+    → http://svn.apache.org/repos/asf/commons/proper/codec/trunk/src/main/java/org/apache/commons/codec
+* __Apache commons compress__: Support for bzip2 compression when opening files<br>
     src/org/apache/commons/compress/compressors (svn external)
-    -> http://svn.apache.org/repos/asf/commons/proper/compress/trunk/src/main/java/org/apache/commons/compress/compressors
-* Apache commons validator: Improved validator routines
+    → http://svn.apache.org/repos/asf/commons/proper/compress/trunk/src/main/java/org/apache/commons/compress/compressors
+* __Apache commons validator__: Improved validator routines<br>
     src/org/openstreetmap/josm/data/validation/routines
-    -> http://commons.apache.org/proper/commons-validator
-* SVG Salamander: Support for SVG image format
+    → http://commons.apache.org/proper/commons-validator
+* __SVG Salamander__: Support for SVG image format<br>
     src/com/kitfox/svg
-    -> https://svgsalamander.java.net/
-* Metadata Extractor: Read EXIF Metadata of photos
+    → https://svgsalamander.java.net/
+* __Metadata Extractor__: Read EXIF Metadata of photos<br>
     src/com/drew
-    -> https://www.drewnoakes.com/code/exif/
-* Signpost: OAuth library
+    → https://www.drewnoakes.com/code/exif/
+* __Signpost__: OAuth library<br>
     src/oauth, src/com/google
-    -> https://code.google.com/p/oauth-signpost/
-* GNU getopt Java port: Command line argument processing library
+    → https://code.google.com/p/oauth-signpost/
+* __GNU getopt Java port__: Command line argument processing library<br>
     src/gnu/getopt
-    -> http://www.urbanophile.com/arenn/hacking/download.html
-* MultiSplitPane: Small lib for GUI layout management
+    → http://www.urbanophile.com/arenn/hacking/download.html
+* __MultiSplitPane__: Small lib for GUI layout management<br>
     src/org/openstreetmap/josm/gui/MultiSplitLayout.java, MultiSplitPane.java
-    -> http://today.java.net/pub/a/today/2006/03/23/multi-split-pane.html
-* swinghelper: Class CheckThreadViolationRepaintManager to find classpath violations
+    → http://today.java.net/pub/a/today/2006/03/23/multi-split-pane.html
+* __swinghelper__: Class CheckThreadViolationRepaintManager to find classpath violations<br>
     src/org/jdesktop/swinghelper/debug/CheckThreadViolationRepaintManager.java
-    -> https://java.net/projects/swinghelper
+    → https://java.net/projects/swinghelper
