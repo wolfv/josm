@@ -46,7 +46,6 @@ import java.util.logging.Logger;
 
 import javax.xml.bind.DatatypeConverter;
 
-
 /**
  *
  * @author kitfox
