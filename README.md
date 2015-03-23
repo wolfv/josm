@@ -192,9 +192,6 @@ There are some third party libraries which are directly included in the source c
 * __jmapviewer__: Java component to browse a TMS map<br>
     src/org/openstreetmap/gui (svn external)
     → http://svn.openstreetmap.org/applications/viewer/jmapviewer/
-* __Apache commons codec__: Better Base64 support<br>
-    src/org/apache/commons/codec (svn external)
-    → http://svn.apache.org/repos/asf/commons/proper/codec/trunk/src/main/java/org/apache/commons/codec
 * __Apache commons compress__: Support for bzip2 compression when opening files<br>
     src/org/apache/commons/compress/compressors (svn external)
     → http://svn.apache.org/repos/asf/commons/proper/compress/trunk/src/main/java/org/apache/commons/compress/compressors
