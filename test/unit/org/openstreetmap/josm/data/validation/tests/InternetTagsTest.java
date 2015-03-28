@@ -4,14 +4,14 @@ package org.openstreetmap.josm.data.validation.tests;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openstreetmap.josm.JOSMFixture;
 import org.openstreetmap.josm.data.osm.OsmUtils;
 import org.openstreetmap.josm.data.validation.TestError;
 import org.openstreetmap.josm.data.validation.routines.AbstractValidator;
-import org.openstreetmap.josm.data.validation.routines.EmailValidator;
-import org.openstreetmap.josm.data.validation.routines.UrlValidator;
 
 /**
  * JUnit Test of "Internet Tags" validation test.

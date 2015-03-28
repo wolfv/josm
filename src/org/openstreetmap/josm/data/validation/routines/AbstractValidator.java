@@ -1,6 +1,8 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.data.validation.routines;
 
+import org.openstreetmap.josm.tools.I18n;
+
 /**
  * Abstract validator superclass to extend Apache Validator routines.
  * @since 7489
@@ -26,11 +28,12 @@ public abstract class AbstractValidator {
     }
 
     /**
-     * Sets the error message.
+     * Sets the localized error message.
      * @param errorMessage the errorMessage
+     * @param objects the additional argument(s) to pass to {@link I18n#tr(String, Object...)}
      */
-    protected final void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+    protected final void setErrorMessage(String errorMessage, Object... objects) {
+        this.errorMessage = I18n.tr(errorMessage, objects);
     }
 
     /**

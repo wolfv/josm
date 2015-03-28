@@ -6,6 +6,8 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import java.net.IDN;
 import java.util.regex.Pattern;
 
+import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.openstreetmap.josm.command.ChangePropertyCommand;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
@@ -16,8 +18,6 @@ import org.openstreetmap.josm.data.validation.Severity;
 import org.openstreetmap.josm.data.validation.Test;
 import org.openstreetmap.josm.data.validation.TestError;
 import org.openstreetmap.josm.data.validation.routines.AbstractValidator;
-import org.openstreetmap.josm.data.validation.routines.EmailValidator;
-import org.openstreetmap.josm.data.validation.routines.UrlValidator;
 
 /**
  * Performs validation tests on internet-related tags (websites, e-mail addresses, etc.).
