@@ -190,14 +190,14 @@ Of course, it is also possible to apply the patch files manually one by one.
 There are some third party libraries which are directly included in the source code tree, in particular:
 
 * __jmapviewer__: Java component to browse a TMS map<br>
-    src/org/openstreetmap/gui (svn external)
-    → http://svn.openstreetmap.org/applications/viewer/jmapviewer/
+    src/org/openstreetmap/gui (git submodule)
+    → git@github.com:floscher/jmapviewer.git
 * __Apache commons compress__: Support for bzip2 compression when opening files<br>
-    src/org/apache/commons/compress/compressors (svn external)
-    → http://svn.apache.org/repos/asf/commons/proper/compress/trunk/src/main/java/org/apache/commons/compress/compressors
+    src/org/apache/commons/compress/compressors (git submodule)
+    → http://git.apache.org/commons-compress.git
 * __Apache commons validator__: Improved validator routines<br>
     src/org/openstreetmap/josm/data/validation/routines
-    → http://commons.apache.org/proper/commons-validator
+    → git@github.com:floscher/commons-validator.git
 * __SVG Salamander__: Support for SVG image format<br>
     src/com/kitfox/svg
     → https://svgsalamander.java.net/
@@ -205,8 +205,8 @@ There are some third party libraries which are directly included in the source c
     src/com/drew
     → https://www.drewnoakes.com/code/exif/
 * __Signpost__: OAuth library<br>
-    src/oauth, src/com/google
-    → https://code.google.com/p/oauth-signpost/
+    src/oauth (git submodule)
+    → git@github.com:floscher/signpost.git
 * __GNU getopt Java port__: Command line argument processing library<br>
     src/gnu/getopt
     → http://www.urbanophile.com/arenn/hacking/download.html

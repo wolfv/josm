@@ -2,3 +2,7 @@
 /build
 /dist
 /plugins
+/test/build
+/test/config
+/test/jacoco.exec
+/test/report
