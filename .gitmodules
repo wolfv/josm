@@ -1,6 +1,12 @@
 [submodule "vendor/apache-commons-compress"]
 	path = vendor/apache-commons-compress
 	url = http://git.apache.org/commons-compress.git
+[submodule "vendor/apache-commons-jcs"]
+	path = vendor/apache-commons-jcs
+	url = git://git.apache.org/commons-jcs.git
+[submodule "vendor/apache-commons-logging"]
+	path = vendor/apache-commons-logging
+	url = git://git.apache.org/commons-logging.git
 [submodule "vendor/apache-commons-validator"]
 	path = vendor/apache-commons-validator
 	url = git@github.com:floscher/commons-validator.git

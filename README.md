@@ -195,6 +195,12 @@ There are some third party libraries which are directly included in the source c
 * __Apache commons compress__: Support for bzip2 compression when opening files<br>
     src/org/apache/commons/compress/compressors (git submodule)
     → http://git.apache.org/commons-compress.git
+* __Apache commons jcs__: distributed caching system written in java<br>
+    src/org/apache/commons/jcs (git submodule)
+    → http://git.apache.org/commons-jcs.git
+* __Apache commons logging__: logging library<br>
+    src/org/apache/commons/logging (git submodule)
+    → http://git.apache.org/commons-logging.git
 * __Apache commons validator__: Improved validator routines<br>
     src/org/openstreetmap/josm/data/validation/routines
     → git@github.com:floscher/commons-validator.git
