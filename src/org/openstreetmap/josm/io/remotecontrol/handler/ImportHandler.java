@@ -6,9 +6,11 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.actions.OpenLocationAction;
 import org.openstreetmap.josm.actions.downloadtasks.DownloadOsmTask;
 import org.openstreetmap.josm.actions.downloadtasks.DownloadTask;
 import org.openstreetmap.josm.io.remotecontrol.PermissionPrefWithDefault;
@@ -17,7 +19,7 @@ import org.openstreetmap.josm.tools.Utils;
 /**
  * Handler for import request
  */
-public class ImportHandler extends RequestHandler {
+public class ImportHandler extends RequestHandler.RawURLParseRequestHandler {
 
     /**
      * The remote control command name used to import data.
@@ -30,9 +32,14 @@ public class ImportHandler extends RequestHandler {
     @Override
     protected void handleRequest() throws RequestHandlerErrorException {
         try {
-            if (suitableDownloadTasks != null && !suitableDownloadTasks.isEmpty()) {
-                // TODO: handle multiple suitable download tasks ?
-                suitableDownloadTasks.iterator().next().loadUrl(isLoadInNewLayer(), url.toExternalForm(), null);
+            if (Main.pref.getBoolean("remotecontrol.import.interactive", true)) {
+                // OpenLocationAction queries the user if more than one task is suitable
+                new OpenLocationAction().openUrl(isLoadInNewLayer(), url.toExternalForm());
+            } else {
+                // Otherwise perform all tasks
+                for (DownloadTask task : suitableDownloadTasks) {
+                    task.loadUrl(isLoadInNewLayer(), url.toExternalForm(), null);
+                }
             }
         } catch (Exception ex) {
             Main.warn("RemoteControl: Error parsing import remote control request:");
@@ -68,47 +75,19 @@ public class ImportHandler extends RequestHandler {
         // Other API instances will however use the import handler to force JOSM to make requests to this API instance.
         // (Example with OSM-FR website that makes calls to the OSM-FR API)
         // For user-friendliness, let's try to decode these OSM API calls to give a better confirmation message.
-        String taskMessage = null;
+        Set<String> taskMessages = new LinkedHashSet<>();
         if (suitableDownloadTasks != null && !suitableDownloadTasks.isEmpty()) {
-            // TODO: handle multiple suitable download tasks ?
-            taskMessage = suitableDownloadTasks.iterator().next().getConfirmationMessage(url);
+            for (DownloadTask task : suitableDownloadTasks) {
+                taskMessages.add(Utils.firstNonNull(task.getConfirmationMessage(url), url.toString()));
+            }
         }
         return tr("Remote Control has been asked to import data from the following URL:")
-                + "<br>" + (taskMessage == null ? url.toString() : taskMessage);
+                + Utils.joinAsHtmlUnorderedList(taskMessages);
     }
 
     @Override
     public PermissionPrefWithDefault getPermissionPref() {
         return PermissionPrefWithDefault.IMPORT_DATA;
-    }
-
-    @Override
-    protected void parseArgs() {
-        HashMap<String, String> args = new HashMap<>();
-        if (request.indexOf('?') != -1) {
-            String query = request.substring(request.indexOf('?') + 1);
-            if (query.indexOf("url=") == 0) {
-                args.put("url", decodeParam(query.substring(4)));
-            } else {
-                int urlIdx = query.indexOf("&url=");
-                if (urlIdx != -1) {
-                    args.put("url", decodeParam(query.substring(urlIdx + 5)));
-                    query = query.substring(0, urlIdx);
-                } else {
-                    if (query.indexOf('#') != -1) {
-                        query = query.substring(0, query.indexOf('#'));
-                    }
-                }
-                String[] params = query.split("&", -1);
-                for (String param : params) {
-                    int eq = param.indexOf('=');
-                    if (eq != -1) {
-                        args.put(param.substring(0, eq), param.substring(eq + 1));
-                    }
-                }
-            }
-        }
-        this.args = args;
     }
 
     @Override
