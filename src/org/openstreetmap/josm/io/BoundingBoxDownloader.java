@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.DataSource;
 import org.openstreetmap.josm.data.gpx.GpxData;
@@ -161,25 +160,21 @@ public class BoundingBoxDownloader extends OsmServerReader {
     }
 
     @Override
-    public List<Note> parseNotes(Integer noteLimit, Integer daysClosed, ProgressMonitor progressMonitor) throws OsmTransferException {
+    public List<Note> parseNotes(int noteLimit, int daysClosed, ProgressMonitor progressMonitor) throws OsmTransferException, MoreNotesException {
         progressMonitor.beginTask("Downloading notes");
-        noteLimit = checkNoteLimit(noteLimit);
-        daysClosed = checkDaysClosed(daysClosed);
-        String url = new StringBuilder()
-        .append("notes?limit=")
-        .append(noteLimit)
-        .append("&closed=")
-        .append(daysClosed)
-        .append("&bbox=")
-        .append(lon1)
-        .append(",").append(lat1)
-        .append(",").append(lon2)
-        .append(",").append(lat2)
-        .toString();
+        CheckParameterUtil.ensureThat(noteLimit > 0, "Requested note limit is less than 1.");
+        // see result_limit in https://github.com/openstreetmap/openstreetmap-website/blob/master/app/controllers/notes_controller.rb
+        CheckParameterUtil.ensureThat(noteLimit <= 10000, "Requested note limit is over API hard limit of 10000.");
+        CheckParameterUtil.ensureThat(daysClosed >= 0, "Requested note limit is less than 0.");
+        String url = "notes?limit=" + noteLimit + "&closed=" + daysClosed + "&bbox=" + lon1 + "," + lat1 + "," + lon2 + "," + lat2;
         try {
             InputStream is = getInputStream(url, progressMonitor.createSubTaskMonitor(1, false));
             NoteReader reader = new NoteReader(is);
-            return reader.parse();
+            final List<Note> notes = reader.parse();
+            if (notes.size() == noteLimit) {
+                throw new MoreNotesException(notes, noteLimit);
+            }
+            return notes;
         } catch (IOException e) {
             throw new OsmTransferException(e);
         } catch (SAXException e) {
@@ -189,32 +184,23 @@ public class BoundingBoxDownloader extends OsmServerReader {
         }
     }
 
-    private Integer checkNoteLimit(Integer limit) {
-        if (limit == null) {
-            limit = Main.pref.getInteger("osm.notes.downloadLimit", 1000);
-        }
-        if (limit > 10000) {
-            Main.error("Requested note limit is over API hard limit of 10000. Reducing to 10000.");
-            limit = 10000;
-        }
-        if (limit < 1) {
-            Main.error("Requested note limit is less than 1. Setting to 1.");
-            limit = 1;
-        }
-        Main.debug("returning note limit: " + limit);
-        return limit;
-    }
+    /**
+     * Indicates that the number of fetched notes equals the specified limit. Thus there might be more notes to download.
+     */
+    public static class MoreNotesException extends RuntimeException{
+        /**
+         * The downloaded notes
+         */
+        public final List<Note> notes;
+        /**
+         * The download limit sent to the server.
+         */
+        public final int limit;
 
-    private Integer checkDaysClosed(Integer days) {
-        if (days == null) {
-            days = Main.pref.getInteger("osm.notes.daysClosed", 7);
+        public MoreNotesException(List<Note> notes, int limit) {
+            this.notes = notes;
+            this.limit = limit;
         }
-        if (days < -1) {
-            Main.error("Requested days closed must be greater than -1");
-            days = -1;
-        }
-        Main.debug("returning days closed: " + days);
-        return days;
     }
 
 }

@@ -2,15 +2,19 @@
 package org.openstreetmap.josm.actions.downloadtasks;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
+import static org.openstreetmap.josm.tools.I18n.trn;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import javax.swing.JOptionPane;
+
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.notes.Note;
+import org.openstreetmap.josm.data.preferences.IntegerProperty;
 import org.openstreetmap.josm.gui.PleaseWaitRunnable;
 import org.openstreetmap.josm.gui.layer.NoteLayer;
 import org.openstreetmap.josm.gui.progress.ProgressMonitor;
@@ -26,6 +30,10 @@ public class DownloadNotesTask extends AbstractDownloadTask {
 
     private static final String PATTERN_API_URL = "https?://.*/api/0.6/notes.*";
     private static final String PATTERN_DUMP_FILE = "https?://.*/(.*\\.osn(.bz2)?)";
+    /** Property defining the number of notes to be downloaded */
+    public static final IntegerProperty DOWNLOAD_LIMIT = new IntegerProperty("osm.notes.downloadLimit", 1000);
+    /** Property defining number of days a bug needs to be closed to no longer be downloaded */
+    public static final IntegerProperty DAYS_CLOSED = new IntegerProperty("osm.notes.daysClosed", 7);
 
     private DownloadTask downloadTask;
 
@@ -139,7 +147,17 @@ public class DownloadNotesTask extends AbstractDownloadTask {
             }
             ProgressMonitor subMonitor = progressMonitor.createSubTaskMonitor(ProgressMonitor.ALL_TICKS, false);
             try {
-                notesData = reader.parseNotes(null, null, subMonitor);
+                notesData = reader.parseNotes(DOWNLOAD_LIMIT.get(), DAYS_CLOSED.get(), subMonitor);
+            } catch (BoundingBoxDownloader.MoreNotesException e) {
+                notesData = e.notes;
+                JOptionPane.showMessageDialog(Main.parent, "<html>"
+                                + trn("{0} note has been downloaded.", "{0} notes have been downloaded.", e.limit, e.limit)
+                                + "<br>"
+                                + tr("Since the download limit was {0}, there might be more notes to download.", e.limit)
+                                + "<br>"
+                                + tr("Request a smaller area to make sure that all notes are being downloaded.")
+                                + "</html>",
+                        tr("More notes to download"), JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
                 if (isCanceled())
                     return;
