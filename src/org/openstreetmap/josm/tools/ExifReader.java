@@ -46,9 +46,10 @@ public final class ExifReader {
             OUTER:
             for (Directory dirIt : metadata.getDirectories()) {
                 for (Tag tag : dirIt.getTags()) {
-                    if (tag.getTagType() == ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL /* 0x9003 */) {
+                    if (tag.getTagType() == ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL /* 0x9003 */ &&
+                            !tag.getDescription().matches("\\[[0-9]+ .+\\]")) {
                         dateStr = tag.getDescription();
-                        break OUTER; // prefer this tag
+                        break OUTER; // prefer this tag if known
                     }
                     if (tag.getTagType() == ExifIFD0Directory.TAG_DATETIME /* 0x0132 */ ||
                         tag.getTagType() == ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED /* 0x9004 */) {
@@ -86,7 +87,7 @@ public final class ExifReader {
     public static Integer readOrientation(File filename) {
         try {
             final Metadata metadata = JpegMetadataReader.readMetadata(filename);
-            final Directory dir = metadata.getDirectory(ExifIFD0Directory.class);
+            final Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
             return dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
         } catch (JpegProcessingException | MetadataException | IOException e) {
             Main.error(e);
@@ -103,7 +104,7 @@ public final class ExifReader {
     public static LatLon readLatLon(File filename) {
         try {
             final Metadata metadata = JpegMetadataReader.readMetadata(filename);
-            final GpsDirectory dirGps = metadata.getDirectory(GpsDirectory.class);
+            final GpsDirectory dirGps = metadata.getFirstDirectoryOfType(GpsDirectory.class);
             return readLatLon(dirGps);
         } catch (JpegProcessingException e) {
             Main.error(e);
@@ -140,7 +141,7 @@ public final class ExifReader {
     public static Double readDirection(File filename) {
         try {
             final Metadata metadata = JpegMetadataReader.readMetadata(filename);
-            final GpsDirectory dirGps = metadata.getDirectory(GpsDirectory.class);
+            final GpsDirectory dirGps = metadata.getFirstDirectoryOfType(GpsDirectory.class);
             return readDirection(dirGps);
         } catch (JpegProcessingException e) {
             Main.error(e);
