@@ -9,6 +9,8 @@ package org.openstreetmap.josm.gui.mappaint.mapcss.parsergen;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.openstreetmap.josm.Main;
@@ -17,6 +19,7 @@ import org.openstreetmap.josm.gui.mappaint.mapcss.Condition;
 import org.openstreetmap.josm.gui.mappaint.mapcss.Condition.Context;
 import org.openstreetmap.josm.gui.mappaint.mapcss.Expression;
 import org.openstreetmap.josm.gui.mappaint.mapcss.ExpressionFactory;
+import org.openstreetmap.josm.gui.mappaint.mapcss.ExpressionFactory.NullExpression;
 import org.openstreetmap.josm.gui.mappaint.mapcss.Instruction;
 import org.openstreetmap.josm.gui.mappaint.mapcss.LiteralExpression;
 import org.openstreetmap.josm.gui.mappaint.mapcss.MapCSSException;
@@ -181,6 +184,7 @@ TOKEN:
 |   < DOLLAR: "$" >
 |   < CARET: "^" >
 |   < FULLSTOP: "." >
+|   < DEG: "°" >
 |   < ELEMENT_OF: "∈" >
 |   < CROSSING: "⧉" >
 |   < COMMENT_START: "/*" > : COMMENT
@@ -853,52 +857,165 @@ Declaration declaration() :
     { return new Declaration(ins, declarationCounter++); }
 }
 
-Expression expression():
+/**
+ * General expression.
+ * Separate production rule for each level of operator precedence (recursive descent).
+ */
+Expression expression() :
 {
-    List<Expression> args = new ArrayList<Expression>();
+    Expression e;
+}
+{
+    e=conditional_expression()
+    {
+        return e;
+    }
+}
+
+Expression conditional_expression() :
+{
+    Expression e, e1, e2;
+    String op = null;
+}
+{
+    e=or_expression()
+    (
+        <QUESTION> w()
+        e1=conditional_expression()
+        <COLON> w()
+        e2=conditional_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression("cond", Arrays.asList(e, e1, e2));
+        }
+    )?
+    {
+        return e;
+    }
+}
+
+Expression or_expression() :
+{
+    Expression e, e2;
+    String op = null;
+}
+{
+    e=and_expression()
+    (
+        <PIPE> <PIPE> w()
+        e2=and_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression("or", Arrays.asList(e, e2));
+        }
+    )*
+    {
+        return e;
+    }
+}
+
+Expression and_expression() :
+{
+    Expression e, e2;
+    String op = null;
+}
+{
+    e=relational_expression()
+    (
+        <AMPERSAND> <AMPERSAND> w()
+        e2=relational_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression("and", Arrays.asList(e, e2));
+        }
+    )*
+    {
+        return e;
+    }
+}
+
+Expression relational_expression() :
+{
+    Expression e, e2;
+    String op = null;
+}
+{
+    e=additive_expression()
+    (
+        (
+            <GREATER_EQUAL> { op = "greater_equal"; }
+            |
+            <LESS_EQUAL> { op = "less_equal"; }
+            |
+            <GREATER> { op = "greater"; }
+            |
+            <LESS> { op = "less"; }
+            |
+            <EQUAL> ( <EQUAL> )? { op = "equal"; }
+            |
+            <EXCLAMATION> <EQUAL> { op = "not_equal"; }
+        ) w()
+        e2=additive_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression(op, Arrays.asList(e, e2));
+        }
+    )?
+    {
+        return e;
+    }
+}
+
+Expression additive_expression() :
+{
+    Expression e, e2;
+    String op = null;
+}
+{
+    e=multiplicative_expression()
+    (
+        ( <PLUS> { op = "plus"; } | <MINUS> { op = "minus"; } ) w()
+        e2=multiplicative_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression(op, Arrays.asList(e, e2));
+        }
+    )*
+    {
+        return e;
+    }
+}
+
+Expression multiplicative_expression() :
+{
+    Expression e, e2;
+    String op = null;
+}
+{
+    e=unary_expression()
+    (
+        ( <STAR> { op = "times"; } | <SLASH> { op = "divided_by"; } ) w()
+        e2=unary_expression()
+        {
+            e = ExpressionFactory.createFunctionExpression(op, Arrays.asList(e, e2));
+        }
+    )*
+    {
+        return e;
+    }
+}
+
+Expression unary_expression() :
+{
     Expression e;
     String op = null;
 }
 {
     (
-        <EXCLAMATION> { op = "not"; } w() e=primary() { args.add(e); } w()
+        <MINUS> { op = "minus"; } w()
     |
-        <MINUS> { op = "minus"; } w() e=primary() { args.add(e); } w()
-    |
-
-        (
-            e=primary() { args.add(e); } w()
-            (
-                    ( <PLUS> { op = "plus"; } w() e=primary() { args.add(e); } w() )+
-                |
-                    ( <STAR> { op = "times"; } w() e=primary() { args.add(e); } w() )+
-                |
-                    ( <MINUS> { op = "minus"; } w() e=primary() { args.add(e); } w() )+
-                |
-                    ( <SLASH> { op = "divided_by"; } w() e=primary() { args.add(e); } w() )+
-                |
-                    <GREATER_EQUAL> { op = "greater_equal"; } w() e=primary() { args.add(e); } w()
-                |
-                    <LESS_EQUAL> { op = "less_equal"; } w() e=primary() { args.add(e); } w()
-                |
-                    <GREATER> { op = "greater"; } w() e=primary() { args.add(e); } w()
-                |
-                    <EQUAL> ( <EQUAL> )? { op = "equal"; } w() e=primary() { args.add(e); } w()
-                |
-                    <LESS> { op = "less"; } w() e=primary() { args.add(e); } w()
-                |
-                    <AMPERSAND> <AMPERSAND> { op = "and"; } w() e=primary() { args.add(e); } w()
-                |
-                    <PIPE> <PIPE> { op = "or"; } w() e=primary() { args.add(e); } w()
-                |
-                    <QUESTION> { op = "cond"; } w() e=primary() { args.add(e); } w() <COLON> w() e=primary() { args.add(e); } w()
-            )?
-        )
-    )
+        <EXCLAMATION> { op = "not"; } w()
+    )?
+    e=primary() w()
     {
         if (op == null)
-            return args.get(0);
-        return ExpressionFactory.createFunctionExpression(op, args);
+            return e;
+        return ExpressionFactory.createFunctionExpression(op, Collections.singletonList(e));
     }
 }
 
@@ -912,7 +1029,12 @@ Expression primary() :
     LOOKAHEAD(3) // both function and identifier start with an identifier (+ optional whitespace)
         fn=function() { return fn; }
     |
-        lit=literal() { return new LiteralExpression(lit); }
+        lit=literal()
+        { 
+            if (lit == null)
+                return NullExpression.INSTANCE;
+            return new LiteralExpression(lit);
+        }
     |
         <LPAR> w() nested=expression() <RPAR> { return nested; }
 }
@@ -938,7 +1060,7 @@ Object literal() :
 {
     String val, pref;
     Token t;
-    float f;
+    Float f;
 }
 {
         LOOKAHEAD(2)
@@ -951,9 +1073,51 @@ Object literal() :
     |
         <PLUS> f=ufloat() { return new Instruction.RelativeFloat(f); }
     |
+        LOOKAHEAD(2)
+        f=ufloat_unit() { return f; }
+    |
         f=ufloat() { return f; }
     |
         t=<HEXCOLOR> { return ColorHelper.html2color(t.image); }
+}
+
+/**
+ * Number followed by a unit.
+ *
+ * Returns angles in radians and lengths in pixels.
+ */
+Float ufloat_unit() :
+{
+    float f;
+    String u;
+}
+{
+    f=ufloat() ( u=ident() | <DEG> { u = "°"; } )
+    {
+        Double m = unit_factor(u);
+        if (m == null)
+            return null;
+        return (float) (f * m);
+    }
+}
+
+JAVACODE
+private Double unit_factor(String unit) {
+    switch (unit) {
+        case "deg":
+        case "°": return Math.PI / 180;
+        case "rad": return 1.;
+        case "grad": return Math.PI / 200;
+        case "turn": return 2 * Math.PI;
+        case "px": return 1.;
+        case "cm": return 96/2.54;
+        case "mm": return 9.6/2.54;
+        case "in": return 96.;
+        case "q": return 2.4/2.54;
+        case "pc": return 16.;
+        case "pt": return 96./72;
+        default: return null;
+    }
 }
 
 JAVACODE
