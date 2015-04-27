@@ -1,6 +1,7 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.tools;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +26,7 @@ import javax.swing.UIManager;
 
 import org.openstreetmap.gui.jmapviewer.FeatureAdapter.TranslationAdapter;
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.gui.util.GuiHelper;
 import org.openstreetmap.josm.gui.widgets.AbstractFileChooser;
 
 /**
@@ -80,6 +82,8 @@ public final class I18n {
 
     private static volatile PluralMode pluralMode = PluralMode.MODE_NOTONE; /* english default */
     private static volatile String loadedCode = "en";
+    /** store the original system locale for further use */
+    public static final Locale SystemLocale = Locale.getDefault();
 
     /* Localization keys for file chooser (and color chooser). */
     private static final String[] javaInternalMessageKeys = new String[] {
@@ -491,13 +495,7 @@ public final class I18n {
             return false;
         URL tr = getTranslationFile(l);
         if (tr == null || !languages.containsKey(l)) {
-            int i = l.indexOf('_');
-            if (i > 0) {
-                l = l.substring(0, i);
-            }
-            tr = getTranslationFile(l);
-            if (tr == null || !languages.containsKey(l))
-                return false;
+            return false;
         }
         try (
             InputStream enStream = en.openStream();
@@ -732,5 +730,24 @@ public final class I18n {
                 return I18n.tr(text, objects);
             }
         };
+    }
+
+    /**
+     * Setup special font for Khmer script, as the default Java fonts do not display these characters.
+     *
+     * @since 8282
+     */
+    public static void setupLanguageFonts() {
+        // Use special font for Khmer script, as the default Java font do not display these characters
+        if ("km".equals(LanguageInfo.getJOSMLocaleCode())) {
+            Collection<String> fonts = Arrays.asList(
+                    GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+            for (String f : new String[]{"Khmer UI", "DaunPenh", "MoolBoran"}) {
+                if (fonts.contains(f)) {
+                    GuiHelper.setUIFont(f);
+                    break;
+                }
+            }
+        }
     }
 }
