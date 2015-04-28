@@ -25,3 +25,6 @@
 [submodule "vendor/xz-java"]
 	path = vendor/xz-java
 	url = http://git.tukaani.org/xz-java.git
+[submodule "vendor/java-getopt"]
+	path = vendor/java-getopt
+	url = https://github.com/floscher/java-getopt
