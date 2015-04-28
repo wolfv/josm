@@ -19,8 +19,6 @@ import java.util.Stack;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -67,8 +65,8 @@ public class XmlObjectParser implements Iterable<Object> {
     }
 
     private class Parser extends DefaultHandler {
-        Stack<Object> current = new Stack<>();
-        StringBuilder characters = new StringBuilder(64);
+        private Stack<Object> current = new Stack<>();
+        private StringBuilder characters = new StringBuilder(64);
 
         private Locator locator;
 
@@ -184,9 +182,9 @@ public class XmlObjectParser implements Iterable<Object> {
     }
 
     private static class Entry {
-        Class<?> klass;
-        boolean onStart;
-        boolean both;
+        private Class<?> klass;
+        private boolean onStart;
+        private boolean both;
         private final Map<String, Field> fields = new HashMap<>();
         private final Map<String, Method> methods = new HashMap<>();
 
@@ -249,10 +247,7 @@ public class XmlObjectParser implements Iterable<Object> {
 
     private Iterable<Object> start(final Reader in, final ContentHandler contentHandler) throws SAXException, IOException {
         try {
-            SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-            parserFactory.setNamespaceAware(true);
-            SAXParser saxParser = parserFactory.newSAXParser();
-            XMLReader reader = saxParser.getXMLReader();
+            XMLReader reader = Utils.newSafeSAXParser().getXMLReader();
             reader.setContentHandler(contentHandler);
             try {
                 // Do not load external DTDs (fix #8191)

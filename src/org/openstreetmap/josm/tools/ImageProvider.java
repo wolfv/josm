@@ -144,13 +144,13 @@ public class ImageProvider {
      * Property set on {@code BufferedImage} returned by {@link #makeImageTransparent}.
      * @since 7132
      */
-    public static String PROP_TRANSPARENCY_FORCED = "josm.transparency.forced";
+    public static final String PROP_TRANSPARENCY_FORCED = "josm.transparency.forced";
 
     /**
      * Property set on {@code BufferedImage} returned by {@link #read} if metadata is required.
      * @since 7132
      */
-    public static String PROP_TRANSPARENCY_COLOR = "josm.transparency.color";
+    public static final String PROP_TRANSPARENCY_COLOR = "josm.transparency.color";
 
     /** directories in which images are searched */
     protected Collection<String> dirs;
@@ -1189,7 +1189,7 @@ public class ImageProvider {
     }
 
     /** 90 degrees in radians units */
-    static final double DEGREE_90 = 90.0 * Math.PI / 180.0;
+    private static final double DEGREE_90 = 90.0 * Math.PI / 180.0;
 
     /**
      * Creates a rotated version of the input image.
