@@ -8,7 +8,7 @@ import org.apache.commons.jcs.engine.ElementAttributes;
 
 /**
  * Class that contains attirubtes for JCS cache entries. Parameters are used to properly handle HTTP caching
- * 
+ *
  * @author Wiktor Niesiobędzki
  *
  */
@@ -20,6 +20,9 @@ public class CacheEntryAttributes extends ElementAttributes {
     private final static String LAST_MODIFICATION = "lastModification";
     private final static String EXPIRATION_TIME = "expirationTime";
 
+    /**
+     * Constructs a new {@code CacheEntryAttributes}.
+     */
     public CacheEntryAttributes() {
         super();
         attrs.put(NO_TILE_AT_ZOOM, "false");

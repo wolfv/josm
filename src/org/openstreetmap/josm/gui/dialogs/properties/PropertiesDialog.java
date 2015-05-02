@@ -13,11 +13,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -154,17 +152,17 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
     private final JPopupMenu blankSpaceMenu = new JPopupMenu();
 
     // Popup menu handlers
-    private final PopupMenuHandler tagMenuHandler = new PopupMenuHandler(tagMenu);
-    private final PopupMenuHandler membershipMenuHandler = new PopupMenuHandler(membershipMenu);
-    private final PopupMenuHandler blankSpaceMenuHandler = new PopupMenuHandler(blankSpaceMenu);
+    private final transient PopupMenuHandler tagMenuHandler = new PopupMenuHandler(tagMenu);
+    private final transient PopupMenuHandler membershipMenuHandler = new PopupMenuHandler(membershipMenu);
+    private final transient PopupMenuHandler blankSpaceMenuHandler = new PopupMenuHandler(blankSpaceMenu);
 
-    private final Map<String, Map<String, Integer>> valueCount = new TreeMap<>();
+    private final transient Map<String, Map<String, Integer>> valueCount = new TreeMap<>();
     /**
      * This sub-object is responsible for all adding and editing of tags
      */
-    private final TagEditHelper editHelper = new TagEditHelper(tagData, valueCount);
+    private final transient TagEditHelper editHelper = new TagEditHelper(tagData, valueCount);
 
-    private final DataSetListenerAdapter dataChangedAdapter = new DataSetListenerAdapter(this);
+    private final transient DataSetListenerAdapter dataChangedAdapter = new DataSetListenerAdapter(this);
     private final HelpAction helpAction = new HelpAction();
     private final PasteValueAction pasteValueAction = new PasteValueAction();
     private final CopyValueAction copyValueAction = new CopyValueAction();
@@ -188,7 +186,7 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
     private final SelectMembersAction selectMembersAction = new SelectMembersAction(false);
     private final SelectMembersAction addMembersToSelectionAction = new SelectMembersAction(true);
 
-    private final HighlightHelper highlightHelper= new HighlightHelper();
+    private final transient HighlightHelper highlightHelper= new HighlightHelper();
 
     /**
      * The Add button (needed to be able to disable it)
@@ -213,7 +211,7 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
     private final JLabel selectSth = new JLabel("<html><p>"
             + tr("Select objects for which to change tags.") + "</p></html>");
 
-    private final PresetHandler presetHandler = new PresetHandler() {
+    private final transient PresetHandler presetHandler = new PresetHandler() {
         @Override public void updateTags(List<Tag> tags) {
             Command command = TaggingPreset.createCommand(getSelection(), tags);
             if (command != null) Main.main.undoRedo.add(command);
@@ -1072,10 +1070,10 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
                 int row;
                 if (tagTable.getSelectedRowCount() == 1) {
                     row = tagTable.getSelectedRow();
-                    String key = URLEncoder.encode(tagData.getValueAt(row, 0).toString(), "UTF-8");
+                    String key = Utils.encodeUrl(tagData.getValueAt(row, 0).toString());
                     @SuppressWarnings("unchecked")
                     Map<String, Integer> m = (Map<String, Integer>) tagData.getValueAt(row, 1);
-                    String val = URLEncoder.encode(m.entrySet().iterator().next().getKey(), "UTF-8");
+                    String val = Utils.encodeUrl(m.entrySet().iterator().next().getKey());
 
                     uris.add(new URI(String.format("%s%sTag:%s=%s", base, lang, key, val)));
                     uris.add(new URI(String.format("%sTag:%s=%s", base, key, val)));
@@ -1087,7 +1085,7 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
                     row = membershipTable.getSelectedRow();
                     String type = ((Relation)membershipData.getValueAt(row, 0)).get("type");
                     if (type != null) {
-                        type = URLEncoder.encode(type, "UTF-8");
+                        type = Utils.encodeUrl(type);
                     }
 
                     if (type != null && !type.isEmpty()) {
@@ -1148,7 +1146,7 @@ public class PropertiesDialog extends ToggleDialog implements SelectionChangedLi
                         }
                     }
                 });
-            } catch (URISyntaxException | UnsupportedEncodingException e1) {
+            } catch (URISyntaxException e1) {
                 Main.error(e1);
             }
         }
