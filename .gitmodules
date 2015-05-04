@@ -3,28 +3,31 @@
 	url = http://git.apache.org/commons-compress.git
 [submodule "vendor/apache-commons-jcs"]
 	path = vendor/apache-commons-jcs
-	url = git://git.apache.org/commons-jcs.git
+	url = http://git.apache.org/commons-jcs.git
 [submodule "vendor/apache-commons-logging"]
 	path = vendor/apache-commons-logging
-	url = git://git.apache.org/commons-logging.git
+	url = http://git.apache.org/commons-logging.git
 [submodule "vendor/apache-commons-validator"]
 	path = vendor/apache-commons-validator
-	url = git@github.com:floscher/commons-validator.git
+	url = https://github.com/floscher/commons-validator
 [submodule "vendor/jmapviewer"]
 	path = vendor/jmapviewer
-	url = git@github.com:floscher/jmapviewer.git
+	url = https://github.com/floscher/jmapviewer
 [submodule "vendor/oauth-signpost"]
 	path = vendor/oauth-signpost
-	url = git@github.com:floscher/signpost.git
+	url = https://github.com/floscher/signpost
 [submodule "vendor/osm-map-icons"]
 	path = vendor/osm-map-icons
-	url = git@github.com:openstreetmap/map-icons.git
+	url = https://github.com/openstreetmap/map-icons
 [submodule "vendor/stdutils"]
 	path = vendor/stdutils
-	url = git@github.com:lordmulder/stdutils.git
+	url = https://github.com/lordmulder/stdutils
 [submodule "vendor/xz-java"]
 	path = vendor/xz-java
 	url = http://git.tukaani.org/xz-java.git
 [submodule "vendor/java-getopt"]
 	path = vendor/java-getopt
 	url = https://github.com/floscher/java-getopt
+[submodule "vendor/swinghelper"]
+	path = vendor/swinghelper
+	url = https://github.com/floscher/swinghelper.git
