@@ -20,7 +20,7 @@ import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.projection.datum.Datum;
 import org.openstreetmap.josm.data.projection.datum.GRS80Datum;
-import org.openstreetmap.josm.data.projection.datum.NTV2GridShiftFileWrapper;
+import org.openstreetmap.josm.data.projection.datum.NTv2GridShiftFileWrapper;
 import org.openstreetmap.josm.data.projection.datum.WGS84Datum;
 import org.openstreetmap.josm.data.projection.proj.ClassProjFactory;
 import org.openstreetmap.josm.data.projection.proj.LambertConformalConic;
@@ -63,7 +63,7 @@ public final class Projections {
     public static final Map<String, ProjFactory> projs = new HashMap<>();
     public static final Map<String, Ellipsoid> ellipsoids = new HashMap<>();
     public static final Map<String, Datum> datums = new HashMap<>();
-    public static final Map<String, NTV2GridShiftFileWrapper> nadgrids = new HashMap<>();
+    public static final Map<String, NTv2GridShiftFileWrapper> nadgrids = new HashMap<>();
     public static final Map<String, Pair<String, String>> inits = new HashMap<>();
 
     static {
@@ -84,8 +84,8 @@ public final class Projections {
         datums.put("WGS84", WGS84Datum.INSTANCE);
         datums.put("GRS80", GRS80Datum.INSTANCE);
 
-        nadgrids.put("BETA2007.gsb", NTV2GridShiftFileWrapper.BETA2007);
-        nadgrids.put("ntf_r93_b.gsb", NTV2GridShiftFileWrapper.ntf_rgf93);
+        nadgrids.put("BETA2007.gsb", NTv2GridShiftFileWrapper.BETA2007);
+        nadgrids.put("ntf_r93_b.gsb", NTv2GridShiftFileWrapper.ntf_rgf93);
 
         loadInits();
     }
@@ -121,7 +121,7 @@ public final class Projections {
         return datums.get(id);
     }
 
-    public static NTV2GridShiftFileWrapper getNTV2Grid(String id) {
+    public static NTv2GridShiftFileWrapper getNTV2Grid(String id) {
         return nadgrids.get(id);
     }
 

@@ -1,7 +1,7 @@
 JOSM License
 ============
 
-JOSM, and all its integral parts, are released under the GNU General 
+JOSM, and all its integral parts, are released under the GNU General
 Public License v2 or later.
 
 The GPL v3 is accessible here:
@@ -11,9 +11,9 @@ The GPL v2 is accessible here:
 http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 The JOSM repository contains files licensed under the Apache License, Version 2.0
-(as stated at the beginning of the file). When compiled with any of this code
-included, the whole software is licensed under GPL v3.
-
+or GNU Lesser General Public License (as stated at the beginning of the file).
+When compiled with any of this code included, the whole software is licensed
+under GPL v3.
 
 
 Note: This is not valid for JOSM plugins. These are not considered

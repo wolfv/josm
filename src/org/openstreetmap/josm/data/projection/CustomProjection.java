@@ -15,8 +15,8 @@ import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.projection.datum.CentricDatum;
 import org.openstreetmap.josm.data.projection.datum.Datum;
-import org.openstreetmap.josm.data.projection.datum.NTV2Datum;
-import org.openstreetmap.josm.data.projection.datum.NTV2GridShiftFileWrapper;
+import org.openstreetmap.josm.data.projection.datum.NTv2Datum;
+import org.openstreetmap.josm.data.projection.datum.NTv2GridShiftFileWrapper;
 import org.openstreetmap.josm.data.projection.datum.NullDatum;
 import org.openstreetmap.josm.data.projection.datum.SevenParameterDatum;
 import org.openstreetmap.josm.data.projection.datum.ThreeParameterDatum;
@@ -305,10 +305,10 @@ public class CustomProjection extends AbstractProjection {
             }
             if ("null".equals(nadgridsId))
                 return new NullDatum(null, ellps);
-            NTV2GridShiftFileWrapper nadgrids = Projections.getNTV2Grid(nadgridsId);
+            NTv2GridShiftFileWrapper nadgrids = Projections.getNTV2Grid(nadgridsId);
             if (nadgrids == null)
                 throw new ProjectionConfigurationException(tr("Grid shift file ''{0}'' for option +nadgrids not supported.", nadgridsId));
-            return new NTV2Datum(nadgridsId, null, ellps, nadgrids);
+            return new NTv2Datum(nadgridsId, null, ellps, nadgrids);
         }
 
         String towgs84 = parameters.get(Param.towgs84.key);
