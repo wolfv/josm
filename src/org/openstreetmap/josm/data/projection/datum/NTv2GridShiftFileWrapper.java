@@ -3,6 +3,7 @@ package org.openstreetmap.josm.data.projection.datum;
 
 import java.io.InputStream;
 
+import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.io.CachedFile;
 
 import au.com.objectix.jgridshift.NTv2GridShiftFile;
@@ -53,6 +54,7 @@ public class NTv2GridShiftFileWrapper {
                 instance = new NTv2GridShiftFile();
                 instance.loadGridShiftFile(is, false);
             } catch (Exception e) {
+                Main.error(e.getMessage());
                 throw new RuntimeException(e);
             }
         }

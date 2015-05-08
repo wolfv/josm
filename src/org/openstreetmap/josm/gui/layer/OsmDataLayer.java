@@ -11,7 +11,6 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
@@ -27,13 +26,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -549,13 +548,13 @@ public class OsmDataLayer extends AbstractModifiableLayer implements Listener, S
     public static GpxData toGpxData(DataSet data, File file) {
         GpxData gpxData = new GpxData();
         gpxData.storageFile = file;
-        HashSet<Node> doneNodes = new HashSet<>();
+        Set<Node> doneNodes = new HashSet<>();
         waysToGpxData(data.getWays(), gpxData, doneNodes);
         nodesToGpxData(data.getNodes(), gpxData, doneNodes);
         return gpxData;
     }
 
-    private static void waysToGpxData(Collection<Way> ways, GpxData gpxData, HashSet<Node> doneNodes) {
+    private static void waysToGpxData(Collection<Way> ways, GpxData gpxData, Set<Node> doneNodes) {
         for (Way w : ways) {
             if (!w.isUsable()) {
                 continue;
@@ -633,7 +632,7 @@ public class OsmDataLayer extends AbstractModifiableLayer implements Listener, S
         return wpt;
     }
 
-    private static void nodesToGpxData(Collection<Node> nodes, GpxData gpxData, HashSet<Node> doneNodes) {
+    private static void nodesToGpxData(Collection<Node> nodes, GpxData gpxData, Set<Node> doneNodes) {
         List<Node> sortedNodes = new ArrayList<>(nodes);
         sortedNodes.removeAll(doneNodes);
         Collections.sort(sortedNodes);
@@ -646,7 +645,7 @@ public class OsmDataLayer extends AbstractModifiableLayer implements Listener, S
     }
 
     private static void addIntegerIfPresent(WayPoint wpt, OsmPrimitive p, String gpxKey, String ... osmKeys) {
-        ArrayList<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
+        List<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
         possibleKeys.add(0, gpxKey);
         for (String key : possibleKeys) {
             String value = p.get(key);
@@ -669,7 +668,7 @@ public class OsmDataLayer extends AbstractModifiableLayer implements Listener, S
     }
 
     private static void addDoubleIfPresent(WayPoint wpt, OsmPrimitive p, String gpxKey, String ... osmKeys) {
-        ArrayList<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
+        List<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
         possibleKeys.add(0, gpxKey);
         for (String key : possibleKeys) {
             String value = p.get(key);
@@ -691,7 +690,7 @@ public class OsmDataLayer extends AbstractModifiableLayer implements Listener, S
     }
 
     private static void addStringIfPresent(WayPoint wpt, OsmPrimitive p, String gpxKey, String ... osmKeys) {
-        ArrayList<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
+        List<String> possibleKeys = new ArrayList<>(Arrays.asList(osmKeys));
         possibleKeys.add(0, gpxKey);
         for (String key : possibleKeys) {
             String value = p.get(key);
