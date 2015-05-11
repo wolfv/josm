@@ -68,6 +68,7 @@ Here is a quick comparison of both repositories:
 Download the git repository via the command line:
 ```shell
 git clone git@github.com:floscher/josm.git
+git submodule --init update
 ```
 This creates a new folder called `josm` inside the directory where you executed the command. This folder contains the full history of the git repository.
 
@@ -82,6 +83,7 @@ where N is the number of revisions you want (e.g. 10 for the latest ten revision
 For downloading from the official repo, use:
 ```shell
 git clone git@github.com:openstreetmap/josm.git
+git submodule --init update
 ```
 
 ### SVN
