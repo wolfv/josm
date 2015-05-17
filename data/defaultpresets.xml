@@ -4893,7 +4893,7 @@
             <text key="name" text="Name" />
         </item> <!-- Scuba Diving -->
         <item name="Skiing" icon="styles/standard/sport/skiing.png" type="node,way,closedway" preset_name_label="true">
-            <link href="http://wiki.openstreetmap.org/wiki/Proposed_features/Piste_Maps"
+            <link href="http://wiki.openstreetmap.org/wiki/Piste_Maps"
                   fr.href="http://wiki.openstreetmap.org/wiki/FR:Piste_Maps"
                   it.href="http://wiki.openstreetmap.org/wiki/IT:Piste_Maps"
                   ru.href="http://wiki.openstreetmap.org/wiki/RU:Piste_Maps" />
@@ -5038,13 +5038,20 @@
             <key key="sport" value="croquet" />
             <reference ref="name_leisure_pitch" />
         </item> <!-- Croquet -->
-        <item name="Hockey" icon="presets/Hockey.png" type="node,closedway" preset_name_label="true">
-            <link href="http://wiki.openstreetmap.org/wiki/Tag:sport=hockey" />
+        <item name="Field Hockey" icon="presets/field_hockey.png" type="node,closedway" preset_name_label="true">
+            <link href="http://wiki.openstreetmap.org/wiki/Tag:sport=field_hockey" />
             <space />
-            <key key="sport" value="hockey" />
+            <key key="sport" value="field_hockey" />
+            <text key="name" text="Name" />
+            <combo key="leisure" text="Type" values="pitch,sports_centre,stadium" />
+        </item> <!-- Field Hockey -->
+        <item name="Ice Hockey" icon="presets/ice_hockey.png" type="node,closedway" preset_name_label="true">
+            <link href="http://wiki.openstreetmap.org/wiki/Tag:sport=ice_hockey" />
+            <space />
+            <key key="sport" value="ice_hockey" />
             <text key="name" text="Name" />
             <combo key="leisure" text="Type" values="ice_rink,pitch,sports_centre,stadium" />
-        </item> <!-- Hockey -->
+        </item> <!-- Ice Hockey -->
         <item name="Pelota" icon="presets/pelota.png" type="node,closedway" preset_name_label="true">
             <link href="http://wiki.openstreetmap.org/wiki/Tag:sport=pelota"
                   uk.href="http://wiki.openstreetmap.org/wiki/Uk:Tag:sport=pelota" />
@@ -8535,7 +8542,7 @@
         </item> <!-- Destination Sign -->
         <separator/>
         <item name="Waterway" icon="presets/river.png" type="relation" preset_name_label="true">
-            <link href="http://wiki.openstreetmap.org/wiki/Relations/Proposed/Waterway" />
+            <link href="http://wiki.openstreetmap.org/wiki/Relation:waterway" />
             <space />
             <key key="type" value="waterway" />
             <combo key="waterway" text="Subtype of waterway (largest one of members)" values="river,stream,canal,drain,ditch" values_searchable="true" />

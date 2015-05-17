@@ -1,4 +1,4 @@
-// License: GPL. See LICENSE file for details.
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.gui.dialogs.validator;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
@@ -181,7 +181,7 @@ public class ValidatorTreePanel extends JTree implements Destroyable {
 
         final Boolean other = ValidatorPreference.PREF_OTHER.get();
         for (TestError e : errors) {
-            if (e.getIgnored()) {
+            if (e.isIgnored()) {
                 continue;
             }
             Severity s = e.getSeverity();
@@ -320,7 +320,7 @@ public class ValidatorTreePanel extends JTree implements Destroyable {
         clearErrors();
         DataSet ds = Main.main.getCurrentDataSet();
         for (TestError error : newerrors) {
-            if (!error.getIgnored()) {
+            if (!error.isIgnored()) {
                 errors.add(error);
                 if (ds != null) {
                     ds.addDataSetListener(error);
