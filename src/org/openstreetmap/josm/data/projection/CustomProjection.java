@@ -334,14 +334,14 @@ public class CustomProjection extends AbstractProjection {
         List<Double> towgs84Param = new ArrayList<>();
         for (String str : numStr) {
             try {
-                towgs84Param.add(Double.parseDouble(str));
+                towgs84Param.add(Double.valueOf(str));
             } catch (NumberFormatException e) {
                 throw new ProjectionConfigurationException(tr("Unable to parse value of parameter ''towgs84'' (''{0}'')", str), e);
             }
         }
         boolean isCentric = true;
         for (Double param : towgs84Param) {
-            if (param != 0.0) {
+            if (Double.doubleToRawLongBits(param) != 0) {
                 isCentric = false;
                 break;
             }
@@ -350,7 +350,7 @@ public class CustomProjection extends AbstractProjection {
             return new CentricDatum(null, null, ellps);
         boolean is3Param = true;
         for (int i = 3; i<towgs84Param.size(); i++) {
-            if (towgs84Param.get(i) != 0.0) {
+            if (Double.doubleToRawLongBits(towgs84Param.get(i)) != 0) {
                 is3Param = false;
                 break;
             }
@@ -495,7 +495,7 @@ public class CustomProjection extends AbstractProjection {
     public Integer getEpsgCode() {
         if (code != null && code.startsWith("EPSG:")) {
             try {
-                return Integer.parseInt(code.substring(5));
+                return Integer.valueOf(code.substring(5));
             } catch (NumberFormatException e) {
                 Main.warn(e);
             }

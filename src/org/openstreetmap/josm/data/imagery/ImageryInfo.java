@@ -261,7 +261,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
                 StringBuilder shapesString = new StringBuilder();
                 for (Shape s : i.bounds.getShapes()) {
                     if (shapesString.length() > 0) {
-                        shapesString.append(";");
+                        shapesString.append(';');
                     }
                     shapesString.append(s.encodeAsString(","));
                 }
@@ -273,7 +273,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
                 StringBuilder val = new StringBuilder();
                 for (String p : i.serverProjections) {
                     if (val.length() > 0) {
-                        val.append(",");
+                        val.append(',');
                     }
                     val.append(p);
                 }
@@ -947,7 +947,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
 
     public String getToolbarName() {
         String res = name;
-        if(pixelPerDegree != 0.0) {
+        if (Double.doubleToRawLongBits(pixelPerDegree) != 0) {
             res += "#PPD="+pixelPerDegree;
         }
         return res;
@@ -955,7 +955,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
 
     public String getMenuName() {
         String res = name;
-        if(pixelPerDegree != 0.0) {
+        if (Double.doubleToRawLongBits(pixelPerDegree) != 0) {
             res += " ("+pixelPerDegree+")";
         }
         return res;

@@ -418,7 +418,7 @@ public class TMSLayer extends ImageryLayer implements ImageObserver, TileLoaderL
 
         int screenPixels = mv.getWidth()*mv.getHeight();
         double tilePixels = Math.abs((y2-y1)*(x2-x1)*tileSource.getTileSize()*tileSource.getTileSize());
-        if (screenPixels == 0 || tilePixels == 0) return 1;
+        if (screenPixels == 0 || Double.doubleToRawLongBits(tilePixels) == 0) return 1;
         return screenPixels/tilePixels;
     }
 
@@ -523,14 +523,14 @@ public class TMSLayer extends ImageryLayer implements ImageObserver, TileLoaderL
                     ExtendedDialog ed = new ExtendedDialog(Main.parent, tr("Tile Info"), new String[]{tr("OK")});
                     ed.setIcon(JOptionPane.INFORMATION_MESSAGE);
                     StringBuilder content = new StringBuilder();
-                    content.append("Tile name: ").append(clickedTile.getKey()).append("\n");
+                    content.append("Tile name: ").append(clickedTile.getKey()).append('\n');
                     try {
-                        content.append("Tile url: ").append(clickedTile.getUrl()).append("\n");
+                        content.append("Tile url: ").append(clickedTile.getUrl()).append('\n');
                     } catch (IOException e) {
                     }
-                    content.append("Tile size: ").append(clickedTile.getTileSource().getTileSize()).append("x").append(clickedTile.getTileSource().getTileSize()).append("\n");
+                    content.append("Tile size: ").append(clickedTile.getTileSource().getTileSize()).append('x').append(clickedTile.getTileSource().getTileSize()).append('\n');
                     Rectangle displaySize = tileToRect(clickedTile);
-                    content.append("Tile display size: ").append(displaySize.width).append("x").append(displaySize.height).append("\n");
+                    content.append("Tile display size: ").append(displaySize.width).append('x').append(displaySize.height).append('\n');
                     ed.setContent(content.toString());
                     ed.showDialog();
                 }
@@ -1260,7 +1260,7 @@ public class TMSLayer extends ImageryLayer implements ImageObserver, TileLoaderL
         EastNorth topLeft = mv.getEastNorth(0, 0);
         EastNorth botRight = mv.getEastNorth(mv.getWidth(), mv.getHeight());
 
-        if (botRight.east() == 0.0 || botRight.north() == 0) {
+        if (Double.doubleToRawLongBits(botRight.east()) == 0 || Double.doubleToRawLongBits(botRight.north()) == 0) {
             /*Main.debug("still initializing??");*/
             // probably still initializing
             return;

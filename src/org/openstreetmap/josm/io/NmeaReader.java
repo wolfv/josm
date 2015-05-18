@@ -269,7 +269,7 @@ public class NmeaReader {
                     throw new IllegalDataException("Malformed lat/lon");
                 }
 
-                if ((latLon.lat()==0.0) && (latLon.lon()==0.0)) {
+                if (LatLon.ZERO.equals(latLon)) {
                     ps.zeroCoord++;
                     return false;
                 }
@@ -314,7 +314,7 @@ public class NmeaReader {
                 // h-dilution
                 accu=e[GPGGA.HDOP.position];
                 if(!accu.isEmpty()) {
-                    currentwp.put(GpxConstants.PT_HDOP, Float.parseFloat(accu));
+                    currentwp.put(GpxConstants.PT_HDOP, Float.valueOf(accu));
                 }
                 // fix
                 accu=e[GPGGA.QUALITY.position];
@@ -363,17 +363,17 @@ public class NmeaReader {
                 // vdop
                 accu=e[GPGSA.VDOP.position];
                 if(!accu.isEmpty()) {
-                    currentwp.put(GpxConstants.PT_VDOP, Float.parseFloat(accu));
+                    currentwp.put(GpxConstants.PT_VDOP, Float.valueOf(accu));
                 }
                 // hdop
                 accu=e[GPGSA.HDOP.position];
                 if(!accu.isEmpty()) {
-                    currentwp.put(GpxConstants.PT_HDOP, Float.parseFloat(accu));
+                    currentwp.put(GpxConstants.PT_HDOP, Float.valueOf(accu));
                 }
                 // pdop
                 accu=e[GPGSA.PDOP.position];
                 if(!accu.isEmpty()) {
-                    currentwp.put(GpxConstants.PT_PDOP, Float.parseFloat(accu));
+                    currentwp.put(GpxConstants.PT_PDOP, Float.valueOf(accu));
                 }
             } else if("$GPRMC".equals(e[0]) || "$GNRMC".equals(e[0])) {
                 // coordinates
@@ -383,7 +383,7 @@ public class NmeaReader {
                         e[GPRMC.WIDTH_NORTH.position],
                         e[GPRMC.LENGTH_EAST.position]
                 );
-                if(latLon.lat()==0.0 && latLon.lon()==0.0) {
+                if (LatLon.ZERO.equals(latLon)) {
                     ps.zeroCoord++;
                     return false;
                 }

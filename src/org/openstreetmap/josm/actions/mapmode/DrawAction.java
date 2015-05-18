@@ -1004,7 +1004,7 @@ public class DrawAction extends MapMode implements MapViewPaintable, SelectionCh
             // Check for parallel segments and do nothing if they are
             // In practice this will probably only happen when a way has been duplicated
 
-            if (u == 0)
+            if (Double.doubleToRawLongBits(u) == 0)
                 return;
 
             // q is a number between 0 and 1
@@ -1191,12 +1191,12 @@ public class DrawAction extends MapMode implements MapViewPaintable, SelectionCh
          */
         if (getCurrentBaseNode() != null && !wayIsFinished) {
             if (alt) {
-                rv.append(" ").append(tr("Start new way from last node."));
+                rv.append(' ').append(tr("Start new way from last node."));
             } else {
-                rv.append(" ").append(tr("Continue way from last node."));
+                rv.append(' ').append(tr("Continue way from last node."));
             }
             if (snapHelper.isSnapOn()) {
-                rv.append(" ").append(tr("Angle snapping active."));
+                rv.append(' ').append(tr("Angle snapping active."));
             }
         }
 
@@ -1219,7 +1219,7 @@ public class DrawAction extends MapMode implements MapViewPaintable, SelectionCh
             Way w = getCurrentDataSet().getSelectedWays().iterator().next();
             for (Node m : w.getNodes()) {
                 if (m.equals(mouseOnExistingNode) || mouseOnExistingWays.contains(w)) {
-                    rv.append(" ").append(tr("Finish drawing."));
+                    rv.append(' ').append(tr("Finish drawing."));
                     break;
                 }
             }
