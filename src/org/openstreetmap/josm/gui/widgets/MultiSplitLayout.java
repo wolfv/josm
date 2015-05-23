@@ -686,12 +686,11 @@ public class MultiSplitLayout implements LayoutManager {
     }
 
     /**
-     * The specified Node is either the wrong type or was configured
-     * incorrectly.
+     * The specified Node is either the wrong type or was configured incorrectly.
      */
     public static class InvalidLayoutException extends RuntimeException {
         private final transient Node node;
-        public InvalidLayoutException (String msg, Node node) {
+        public InvalidLayoutException(String msg, Node node) {
             super(msg);
             this.node = node;
         }
@@ -896,9 +895,9 @@ public class MultiSplitLayout implements LayoutManager {
          * of weight is 0.0.
          *
          * @param weight a double between 0.0 and 1.0
+         * @throws IllegalArgumentException if weight is not between 0.0 and 1.0
          * @see #getWeight
          * @see MultiSplitLayout#layoutContainer
-         * @throws IllegalArgumentException if weight is not between 0.0 and 1.0
          */
         public void setWeight(double weight) {
             if ((weight < 0.0)|| (weight > 1.0))
@@ -997,8 +996,8 @@ public class MultiSplitLayout implements LayoutManager {
          * defensively copies the incoming List. Default value is an empty List.
          *
          * @param children List of children
-         * @see #getChildren
          * @throws IllegalArgumentException if children is null
+         * @see #getChildren
          */
         public void setChildren(List<Node> children) {
             if (children == null)
@@ -1050,15 +1049,14 @@ public class MultiSplitLayout implements LayoutManager {
         private String name = "";
 
         /**
-         * Create a Leaf node.  The default value of name is "".
+         * Create a Leaf node. The default value of name is "".
          */
         public Leaf() {
-
+            // Name can be set later with setName()
         }
 
         /**
-         * Create a Leaf node with the specified name.  Name can not
-         * be null.
+         * Create a Leaf node with the specified name. Name can not be null.
          *
          * @param name value of the Leaf's name property
          * @throws IllegalArgumentException if name is null
@@ -1094,8 +1092,7 @@ public class MultiSplitLayout implements LayoutManager {
             StringBuilder sb = new StringBuilder("MultiSplitLayout.Leaf");
             sb.append(" \"")
               .append(getName())
-              .append('\"')
-              .append(" weight=")
+              .append("\" weight=")
               .append(getWeight())
               .append(' ')
               .append(getBounds());
@@ -1221,7 +1218,7 @@ public class MultiSplitLayout implements LayoutManager {
         }
     }
 
-    private static Node parseModel (Reader r) {
+    private static Node parseModel(Reader r) {
         StreamTokenizer st = new StreamTokenizer(r);
         try {
             Split root = new Split();

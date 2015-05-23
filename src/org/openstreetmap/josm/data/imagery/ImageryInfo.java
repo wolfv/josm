@@ -197,8 +197,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
     private String countryCode = "";
     /** icon used in menu */
     private String icon;
-    // when adding a field, also adapt the ImageryInfo(ImageryInfo) constructor
-    private Map<String, String> noTileHeaders;
+    // when adding a field, also adapt the ImageryInfo(ImageryInfo) constructor, equals method, and ImageryPreferenceEntry
 
     /**
      * Auxiliary class to save an {@link ImageryInfo} object in the preferences.
@@ -227,6 +226,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
         @pref String description;
         @pref Map<String, String> noTileHeaders;
         @pref int tileSize = OsmMercator.DEFAUL_TILE_SIZE;
+        @pref Map<String, String> metadataHeaders;
 
         /**
          * Constructs a new empty WMS {@code ImageryPreferenceEntry}.
@@ -282,6 +282,10 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
             }
             if (i.noTileHeaders != null && !i.noTileHeaders.isEmpty()) {
                 noTileHeaders = i.noTileHeaders;
+            }
+
+            if (i.metadataHeaders != null && !i.metadataHeaders.isEmpty()) {
+                metadataHeaders = i.metadataHeaders;
             }
 
             tileSize = i.getTileSize();
@@ -407,6 +411,7 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
             noTileHeaders = e.noTileHeaders;
         }
         setTileSize(e.tileSize);
+        metadataHeaders = e.metadataHeaders;
     }
 
     /**
@@ -435,6 +440,8 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
         this.countryCode = i.countryCode;
         this.icon = i.icon;
         this.description = i.description;
+        this.noTileHeaders = i.noTileHeaders;
+        this.metadataHeaders = i.metadataHeaders;
     }
 
     @Override
@@ -464,64 +471,29 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
         if (other == null) {
             return false;
         }
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        if (!Objects.equals(this.url, other.url)) {
-            return false;
-        }
-        if (!Objects.equals(this.cookies, other.cookies)) {
-            return false;
-        }
-        if (!Objects.equals(this.eulaAcceptanceRequired, other.eulaAcceptanceRequired)) {
-            return false;
-        }
-        if (this.imageryType != other.imageryType) {
-            return false;
-        }
-        if (this.defaultMaxZoom != other.defaultMaxZoom) {
-            return false;
-        }
-        if (this.defaultMinZoom != other.defaultMinZoom) {
-            return false;
-        }
-        if (!Objects.equals(this.bounds, other.bounds)) {
-            return false;
-        }
-        if (!Objects.equals(this.serverProjections, other.serverProjections)) {
-            return false;
-        }
-        if (!Objects.equals(this.attributionText, other.attributionText)) {
-            return false;
-        }
-        if (!Objects.equals(this.attributionLinkURL, other.attributionLinkURL)) {
-            return false;
-        }
-        if (!Objects.equals(this.attributionImage, other.attributionImage)) {
-            return false;
-        }
-        if (!Objects.equals(this.attributionImageURL, other.attributionImageURL)) {
-            return false;
-        }
-        if (!Objects.equals(this.termsOfUseText, other.termsOfUseText)) {
-            return false;
-        }
-        if (!Objects.equals(this.termsOfUseURL, other.termsOfUseURL)) {
-            return false;
-        }
-        if (!Objects.equals(this.countryCode, other.countryCode)) {
-            return false;
-        }
-        if (!Objects.equals(this.icon, other.icon)) {
-            return false;
-        }
-        if (!Objects.equals(this.description, other.description)) {
-            return false;
-        }
-        return true;
+
+        return
+                Objects.equals(this.name, other.name) &&
+                Objects.equals(this.id, other.id) &&
+                Objects.equals(this.url, other.url) &&
+                Objects.equals(this.cookies, other.cookies) &&
+                Objects.equals(this.eulaAcceptanceRequired, other.eulaAcceptanceRequired) &&
+                Objects.equals(this.imageryType, other.imageryType) &&
+                Objects.equals(this.defaultMaxZoom, other.defaultMaxZoom) &&
+                Objects.equals(this.defaultMinZoom, other.defaultMinZoom) &&
+                Objects.equals(this.bounds, other.bounds) &&
+                Objects.equals(this.serverProjections, other.serverProjections) &&
+                Objects.equals(this.attributionText, other.attributionText) &&
+                Objects.equals(this.attributionLinkURL, other.attributionLinkURL) &&
+                Objects.equals(this.attributionImageURL, other.attributionImageURL) &&
+                Objects.equals(this.attributionImage, other.attributionImage) &&
+                Objects.equals(this.termsOfUseText, other.termsOfUseText) &&
+                Objects.equals(this.termsOfUseURL, other.termsOfUseURL) &&
+                Objects.equals(this.countryCode, other.countryCode) &&
+                Objects.equals(this.icon, other.icon) &&
+                Objects.equals(this.description, other.description) &&
+                Objects.equals(this.noTileHeaders, other.noTileHeaders) &&
+                Objects.equals(this.metadataHeaders, other.metadataHeaders);
     }
 
     @Override
@@ -1049,6 +1021,13 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
         return capabilities != null && capabilities.isOnImageryBlacklist(this.url);
     }
 
+    /**
+     * Sets the Map of <header name, header value> that if any of this header
+     * will be returned, then this tile will be treated as "no tile at this zoom level"
+     *
+     * @param noTileHeaders
+     * @since 8344
+     */
     public void setNoTileHeaders(Map<String, String> noTileHeaders) {
        this.noTileHeaders = noTileHeaders;
     }
@@ -1056,5 +1035,16 @@ public class ImageryInfo extends TileSourceInfo implements Comparable<ImageryInf
     @Override
     public Map<String, String> getNoTileHeaders() {
         return noTileHeaders;
+    }
+
+    /**
+     * Returns the map <header name, metadata key> indicating, which HTTP headers should
+     * be moved to metadata
+     *
+     * @param metadataHeaders
+     * @since 8418
+     */
+    public void setMetadataHeaders(Map<String, String> metadataHeaders) {
+        this.metadataHeaders = metadataHeaders;
     }
 }
