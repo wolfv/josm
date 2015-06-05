@@ -1,4 +1,4 @@
-# JOSM – the Java OpenStreetMap Editor
+# JOSM – the Java OpenStreetMap Editor [![Build Status](https://travis-ci.org/floscher/josm.svg?branch=master)](https://travis-ci.org/floscher/josm)
 
 ![Banner](/images_nodist/logo/bannerhorizontal.jpg)
 
@@ -8,7 +8,7 @@
 
 To run JOSM, you need:
 
-* The JOSM .jar file, e.g., [josm-tested.jar](//josm.openstreetmap.de/josm-tested.jar) or [josm-latest.jar](//josm.openstreetmap.de/josm-latest.jar)
+* The JOSM .jar file, e.g. [josm-tested.jar](//josm.openstreetmap.de/josm-tested.jar) or [josm-latest.jar](//josm.openstreetmap.de/josm-latest.jar)
 * [Java Runtime Environment (JRE) 7, or later](//java.com/download)
 
 

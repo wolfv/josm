@@ -216,7 +216,7 @@ Build-Date: ${build.tstamp}
     <target name="compile" depends="init,javacc,jaxb">
         <!-- COTS -->
         <javac srcdir="${src.dir}" includes="com/**,oauth/**,org/apache/commons/**,org/glassfish/**" nowarn="on" encoding="iso-8859-1"
-            destdir="build" target="1.7" source="1.7" debug="on" includeAntRuntime="false" createMissingPackageInfoClass="false">
+            destdir="build" target="1.7" source="1.7" debug="on" includeAntRuntime="false">
             <!-- get rid of "internal proprietary API" warning -->
             <compilerarg value="-XDignore.symbol.file"/>
             <exclude name="org/apache/commons/compress/compressors/lzma/**"/>
@@ -240,7 +240,7 @@ Build-Date: ${build.tstamp}
         </javac>
         <!-- JMapViewer/JOSM -->
         <javac srcdir="${src.dir}" excludes="com/**,oauth/**,org/apache/commons/**,org/glassfish/**,org/openstreetmap/gui/jmapviewer/Demo.java"
-            destdir="build" target="1.7" source="1.7" debug="on" includeantruntime="false" createMissingPackageInfoClass="false" encoding="UTF-8">
+            destdir="build" target="1.7" source="1.7" debug="on" includeantruntime="false" encoding="UTF-8">
             <compilerarg value="-Xlint:cast"/>
             <compilerarg value="-Xlint:deprecation"/>
             <compilerarg value="-Xlint:dep-ann"/>

@@ -33,4 +33,4 @@
 	url = https://github.com/floscher/swinghelper.git
 [submodule "vendor/jGridShift"]
 	path = vendor/jGridShift
-	url = git@github.com:floscher/jGridShift.git
+	url = https://github.com/floscher/jGridShift.git
