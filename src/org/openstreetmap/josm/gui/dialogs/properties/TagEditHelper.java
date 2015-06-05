@@ -158,7 +158,7 @@ class TagEditHelper {
         final EditTagDialog editDialog = new EditTagDialog(key,
                 (Map<String, Integer>) tagData.getValueAt(row, 1), focusOnKey);
         editDialog.showDialog();
-        if (editDialog.getValue() !=1 ) return;
+        if (editDialog.getValue() != 1) return;
         editDialog.performTagEdit();
     }
 
@@ -210,7 +210,7 @@ class TagEditHelper {
      */
     public void saveTagsIfNeeded() {
         if (PROPERTY_REMEMBER_TAGS.get() && !recentTags.isEmpty()) {
-            List<String> c = new ArrayList<>( recentTags.size()*2 );
+            List<String> c = new ArrayList<>(recentTags.size()*2);
             for (Tag t: recentTags.keySet()) {
                 c.add(t.getKey());
                 c.add(t.getValue());
@@ -519,8 +519,9 @@ class TagEditHelper {
                 new AbstractAction(tr("Use English language for tag by default")){
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    boolean sel=((JCheckBoxMenuItem) e.getSource()).getState();
-                    PROPERTY_FIX_TAG_LOCALE.put(sel);
+                    boolean use=((JCheckBoxMenuItem) e.getSource()).getState();
+                    PROPERTY_FIX_TAG_LOCALE.put(use);
+                    keys.setFixedLocale(use);
                 }
             });
             {

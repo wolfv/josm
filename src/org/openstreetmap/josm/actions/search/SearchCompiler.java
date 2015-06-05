@@ -481,7 +481,7 @@ public class SearchCompiler {
         private final boolean caseSensitive;
 
         public KeyValue(String key, String value, boolean regexSearch, boolean caseSensitive) throws ParseError {
-            this.caseSensitive = caseSensitive;
+        this.caseSensitive = caseSensitive;
             if (regexSearch) {
                 int searchFlags = regexFlags(caseSensitive);
 
@@ -508,7 +508,7 @@ public class SearchCompiler {
                 this.keyPattern = null;
                 this.valuePattern = null;
             } else {
-                this.key = key.toLowerCase(Locale.ENGLISH);
+                this.key = key;
                 this.value = value;
                 this.keyPattern = null;
                 this.valuePattern = null;
@@ -550,6 +550,14 @@ public class SearchCompiler {
                     mv = DateUtils.fromDate(osm.getTimestamp());
                 } else {
                     mv = osm.get(key);
+                    if(!caseSensitive && mv == null) {
+                        for (String k: osm.keySet()) {
+                            if(key.equalsIgnoreCase(k)) {
+                                mv = osm.get(k);
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 if (mv == null)
@@ -650,7 +658,7 @@ public class SearchCompiler {
                 }
             }
 
-            if (regexp && key.length() > 0 && !"*".equals(key)) {
+            if (regexp && !key.isEmpty() && !"*".equals(key)) {
                 try {
                     keyPattern = Pattern.compile(key, regexFlags(false));
                 } catch (PatternSyntaxException e) {
@@ -661,7 +669,7 @@ public class SearchCompiler {
             } else {
                 keyPattern = null;
             }
-            if (regexp && this.value.length() > 0 && !"*".equals(this.value)) {
+            if (regexp && !this.value.isEmpty() && !"*".equals(this.value)) {
                 try {
                     valuePattern = Pattern.compile(this.value, regexFlags(false));
                 } catch (PatternSyntaxException e) {
