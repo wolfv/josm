@@ -43,7 +43,8 @@ import org.openstreetmap.josm.gui.tagging.TaggingPreset;
 import org.openstreetmap.josm.gui.tagging.TaggingPresetType;
 import org.openstreetmap.josm.gui.widgets.OsmPrimitivesTableModel;
 
-public class MemberTableModel extends AbstractTableModel implements TableModelListener, SelectionChangedListener, DataSetListener, OsmPrimitivesTableModel {
+public class MemberTableModel extends AbstractTableModel
+implements TableModelListener, SelectionChangedListener, DataSetListener, OsmPrimitivesTableModel {
 
     /**
      * data of the table model: The list of members and the cached WayConnectionType of each member.
@@ -408,7 +409,8 @@ public class MemberTableModel extends AbstractTableModel implements TableModelLi
     }
 
     private void addMembersAtIndex(List<? extends OsmPrimitive> primitives, int index) {
-        final Collection<TaggingPreset> presets = TaggingPreset.getMatchingPresets(EnumSet.of(TaggingPresetType.RELATION), presetHandler.getSelection().iterator().next().getKeys(), false);
+        final Collection<TaggingPreset> presets = TaggingPreset.getMatchingPresets(EnumSet.of(TaggingPresetType.RELATION),
+                presetHandler.getSelection().iterator().next().getKeys(), false);
         if (primitives == null)
             return;
         int idx = index;
@@ -715,6 +717,18 @@ public class MemberTableModel extends AbstractTableModel implements TableModelLi
         members.addAll(newMembers);
         fireTableDataChanged();
         setSelectedMembers(sortedMembers);
+    }
+
+    /**
+     * Sort the selected relation members and all members below by the way they are linked.
+     */
+    void sortBelow() {
+        final List<RelationMember> subList = members.subList(getSelectionModel().getMinSelectionIndex(), members.size());
+        final List<RelationMember> sorted = relationSorter.sortMembers(subList);
+        subList.clear();
+        subList.addAll(sorted);
+        fireTableDataChanged();
+        setSelectedMembers(sorted);
     }
 
     WayConnectionType getWayConnection(int i) {

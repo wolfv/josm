@@ -52,7 +52,6 @@ import org.openstreetmap.josm.data.Version;
 import org.openstreetmap.josm.gui.download.DownloadDialog;
 import org.openstreetmap.josm.gui.preferences.server.OAuthAccessTokenHolder;
 import org.openstreetmap.josm.gui.preferences.server.ProxyPreference;
-import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 import org.openstreetmap.josm.gui.util.GuiHelper;
 import org.openstreetmap.josm.io.DefaultProxySelector;
 import org.openstreetmap.josm.io.MessageNotifier;
@@ -403,14 +402,22 @@ public class MainApplication extends Main {
         OAuthAccessTokenHolder.getInstance().init(Main.pref, CredentialsManager.getInstance());
 
         final SplashScreen splash = new SplashScreen();
-        final ProgressMonitor monitor = splash.getProgressMonitor();
+        final SplashScreen.SplashProgressMonitor monitor = splash.getProgressMonitor();
         monitor.beginTask(tr("Initializing"));
         splash.setVisible(Main.pref.getBoolean("draw.splashscreen", true));
         Main.setInitStatusListener(new InitStatusListener() {
 
             @Override
-            public void updateStatus(String event) {
-                monitor.indeterminateSubTask(event);
+            public Object updateStatus(String event) {
+                monitor.beginTask(event);
+                return event;
+            }
+
+            @Override
+            public void finish(Object status) {
+                if (status instanceof String) {
+                    monitor.finishTask((String) status);
+                }
             }
         });
 
@@ -474,7 +481,8 @@ public class MainApplication extends Main {
         if (Main.isPlatformWindows()) {
             try {
                 // Check for insecure certificates to remove.
-                // This is Windows-dependant code but it can't go to preStartupHook (need i18n) neither startupHook (need to be called before remote control)
+                // This is Windows-dependant code but it can't go to preStartupHook (need i18n)
+                // neither startupHook (need to be called before remote control)
                 PlatformHookWindows.removeInsecureCertificates();
             } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException | IOException e) {
                 error(e);
@@ -490,7 +498,8 @@ public class MainApplication extends Main {
         }
 
         if (Main.pref.getBoolean("debug.edt-checker.enable", Version.getInstance().isLocalBuild())) {
-            // Repaint manager is registered so late for a reason - there is lots of violation during startup process but they don't seem to break anything and are difficult to fix
+            // Repaint manager is registered so late for a reason - there is lots of violation during startup process
+            // but they don't seem to break anything and are difficult to fix
             info("Enabled EDT checker, wrongful access to gui from non EDT thread will be printed to console");
             RepaintManager.setCurrentManager(new CheckThreadViolationRepaintManager());
         }

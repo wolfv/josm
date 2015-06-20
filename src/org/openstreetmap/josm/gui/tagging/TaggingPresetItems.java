@@ -64,6 +64,7 @@ import org.openstreetmap.josm.gui.widgets.JosmComboBox;
 import org.openstreetmap.josm.gui.widgets.JosmTextField;
 import org.openstreetmap.josm.gui.widgets.QuadStateCheckBox;
 import org.openstreetmap.josm.gui.widgets.UrlLabel;
+import org.openstreetmap.josm.tools.AlphanumComparator;
 import org.openstreetmap.josm.tools.GBC;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Predicate;
@@ -92,7 +93,7 @@ public final class TaggingPresetItems {
      */
     private static final Map<String,String> LAST_VALUES = new HashMap<>();
 
-    public static class PresetListEntry {
+    public static class PresetListEntry implements Comparable<PresetListEntry> {
         public String value;
         /** The context used for translating {@link #value} */
         public String value_context;
@@ -167,6 +168,11 @@ public final class TaggingPresetItems {
             if (value.equals(DIFFERENT))
                 return DIFFERENT;
             return getDisplayValue(true).replaceAll("<.*>", ""); // remove additional markup, e.g. <br>
+        }
+
+        @Override
+        public int compareTo(PresetListEntry o) {
+            return AlphanumComparator.getInstance().compare(this.getDisplayValue(true), o.getDisplayValue(true));
         }
     }
 
@@ -1063,7 +1069,7 @@ public final class TaggingPresetItems {
             initialized = true;
         }
 
-        private String[] initListEntriesFromAttributes() {
+        private void initListEntriesFromAttributes() {
             char delChar = getDelChar();
 
             String[] value_array = null;
@@ -1100,30 +1106,40 @@ public final class TaggingPresetItems {
             String[] short_descriptions_array = descr == null ? null : splitEscaped(delChar, descr);
 
             if (display_array.length != value_array.length) {
-                Main.error(tr("Broken tagging preset \"{0}-{1}\" - number of items in ''display_values'' must be the same as in ''values''", key, text));
+                Main.error(tr("Broken tagging preset \"{0}-{1}\" - number of items in ''display_values'' must be the same as in ''values''",
+                                key, text));
                 display_array = value_array;
             }
 
             if (short_descriptions_array != null && short_descriptions_array.length != value_array.length) {
-                Main.error(tr("Broken tagging preset \"{0}-{1}\" - number of items in ''short_descriptions'' must be the same as in ''values''", key, text));
+                Main.error(tr("Broken tagging preset \"{0}-{1}\" - number of items in ''short_descriptions'' must be the same as in ''values''",
+                                key, text));
                 short_descriptions_array = null;
             }
 
+            final List<PresetListEntry> entries = new ArrayList<>(value_array.length);
             for (int i = 0; i < value_array.length; i++) {
                 final PresetListEntry e = new PresetListEntry(value_array[i]);
                 e.locale_display_value = locale_display_values != null
                         ? display_array[i]
-                                : trc(values_context, fixPresetString(display_array[i]));
-                        if (short_descriptions_array != null) {
-                            e.locale_short_description = locale_short_descriptions != null
-                                    ? short_descriptions_array[i]
-                                            : tr(fixPresetString(short_descriptions_array[i]));
-                        }
-                        lhm.put(value_array[i], e);
-                        display_array[i] = e.getDisplayValue(true);
+                        : trc(values_context, fixPresetString(display_array[i]));
+                if (short_descriptions_array != null) {
+                    e.locale_short_description = locale_short_descriptions != null
+                            ? short_descriptions_array[i]
+                            : tr(fixPresetString(short_descriptions_array[i]));
+                }
+
+                entries.add(e);
             }
 
-            return display_array;
+            if (Main.pref.getBoolean("taggingpreset.sortvalues", true)) {
+                Collections.sort(entries);
+            }
+
+            for (PresetListEntry i : entries) {
+                lhm.put(i.value, i);
+            }
+
         }
 
         protected String getDisplayIfNull() {
@@ -1185,15 +1201,11 @@ public final class TaggingPresetItems {
 
         private static final ListCellRenderer<PresetListEntry> RENDERER = new ListCellRenderer<PresetListEntry>() {
 
-            private JLabel lbl = new JLabel();
+            private final JLabel lbl = new JLabel();
 
             @Override
-            public Component getListCellRendererComponent(
-                    JList<? extends PresetListEntry> list,
-                    PresetListEntry item,
-                    int index,
-                    boolean isSelected,
-                    boolean cellHasFocus) {
+            public Component getListCellRendererComponent(JList<? extends PresetListEntry> list, PresetListEntry item, int index,
+                    boolean isSelected, boolean cellHasFocus) {
 
                 // Only return cached size, item is not shown
                 if (!list.isShowing() && item.prefferedWidth != -1 && item.prefferedHeight != -1) {
@@ -1206,7 +1218,6 @@ public final class TaggingPresetItems {
                 }
 
                 lbl.setPreferredSize(null);
-
 
                 if (isSelected) {
                     lbl.setBackground(list.getSelectionBackground());
