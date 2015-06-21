@@ -92,7 +92,9 @@ public abstract class Plugin implements MapFrameListener {
      * Called in the preferences dialog to create a preferences page for the plugin,
      * if any available.
      */
-    public PreferenceSetting getPreferenceSetting() { return null; }
+    public PreferenceSetting getPreferenceSetting() {
+        return null;
+    }
 
     /**
      * Called in the download dialog to give the plugin a chance to modify the list
@@ -120,7 +122,7 @@ public abstract class Plugin implements MapFrameListener {
                 throw new IOException("Resource not found: "+from);
             }
             byte[] buffer = new byte[8192];
-            for(int len = in.read(buffer); len > 0; len = in.read(buffer)) {
+            for (int len = in.read(buffer); len > 0; len = in.read(buffer)) {
                 out.write(buffer, 0, len);
             }
         }

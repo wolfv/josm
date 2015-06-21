@@ -311,7 +311,7 @@ public abstract class Condition {
         public final KeyMatchType matchType;
         public Predicate<String> containsPattern;
 
-        public KeyCondition(String label, boolean negateResult, KeyMatchType matchType){
+        public KeyCondition(String label, boolean negateResult, KeyMatchType matchType) {
             this.label = label;
             this.negateResult = negateResult;
             this.matchType = matchType;
@@ -485,7 +485,7 @@ public abstract class Condition {
         public final Method method;
         public final boolean not;
 
-        private PseudoClassCondition(Method method, boolean not) {
+        protected PseudoClassCondition(Method method, boolean not) {
             this.method = method;
             this.not = not;
         }
@@ -499,8 +499,7 @@ public abstract class Condition {
             if (method != null) {
                 return new PseudoClassCondition(method, not);
             }
-            throw new IllegalArgumentException("Invalid pseudo class specified: " + id);
-
+            throw new MapCSSException("Invalid pseudo class specified: " + id);
         }
 
         protected static Method getMethod(String id) {
