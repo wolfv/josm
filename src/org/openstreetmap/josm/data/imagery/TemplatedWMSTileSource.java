@@ -33,8 +33,7 @@ import org.openstreetmap.josm.tools.CheckParameterUtil;
  * Tile Source handling WMS providers
  *
  * @author Wiktor Niesiobędzki
- * @since TODO
- *
+ * @since 8526
  */
 public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTileSource {
     private Map<String, String> headers = new HashMap<>();
@@ -52,7 +51,6 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     private static final String PATTERN_WIDTH   = "\\{width\\}";
     private static final String PATTERN_HEIGHT  = "\\{height\\}";
 
-
     private static final NumberFormat latLonFormat = new DecimalFormat("###0.0000000", new DecimalFormatSymbols(Locale.US));
 
     private static final String[] ALL_PATTERNS = {
@@ -61,7 +59,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
 
     /**
      * Creates a tile source based on imagery info
-     * @param info
+     * @param info imagery info
      */
     public TemplatedWMSTileSource(ImageryInfo info) {
         super(info);
@@ -106,7 +104,6 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
         double s = se.getY();
         double e = se.getX();
 
-
         if (!serverProjections.contains(myProjCode) && serverProjections.contains("EPSG:4326") && "EPSG:3857".equals(myProjCode)) {
             LatLon swll = Main.getProjection().eastNorth2latlon(new EastNorth(w, s));
             LatLon nell = Main.getProjection().eastNorth2latlon(new EastNorth(e, n));
@@ -135,7 +132,9 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
         //      For CRS x and y are as specified by the EPSG
         //          E.g. [1] lists lat as first coordinate axis and lot as second, so it is switched for EPSG:4326.
         //          For most other EPSG code there seems to be no difference.
+        // CHECKSTYLE.OFF: LineLength
         // [1] https://www.epsg-registry.org/report.htm?type=selection&entity=urn:ogc:def:crs:EPSG::4326&reportDetail=short&style=urn:uuid:report-style:default-with-code&style_name=OGP%20Default%20With%20Code&title=EPSG:4326
+        // CHECKSTYLE.ON: LineLength
         boolean switchLatLon = false;
         if (baseUrl.toLowerCase().contains("crs=epsg:4326")) {
             switchLatLon = true;
@@ -297,7 +296,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
 
     /**
      * Checks if url is acceptable by this Tile Source
-     * @param url
+     * @param url URL to check
      */
     public static void checkUrl(String url) {
         CheckParameterUtil.ensureParameterNotNull(url, "url");
@@ -323,7 +322,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
         StringBuffer output = new StringBuffer();
         Matcher matcher = pattern.matcher(this.baseUrl);
         while (matcher.find()) {
-            headers.put(matcher.group(1),matcher.group(2));
+            headers.put(matcher.group(1), matcher.group(2));
             matcher.appendReplacement(output, "");
         }
         matcher.appendTail(output);
@@ -336,7 +335,6 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
                         topLeftCorner.east() + x * scale,
                         topLeftCorner.north() - y * scale
                         );
-
     }
 
     private double getDegreesPerTile(int zoom) {
@@ -371,6 +369,4 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
         EastNorth max = proj.latlon2eastNorth(bounds.getMax());
         return (int) Math.ceil(Math.abs(max.getX() - min.getX()) / scale);
     }
-
-
 }
