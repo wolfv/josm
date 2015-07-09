@@ -46,6 +46,7 @@ import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.projection.Projection;
+import org.openstreetmap.josm.data.projection.Projections;
 import org.openstreetmap.josm.gui.ExtendedDialog;
 import org.openstreetmap.josm.io.CachedFile;
 import org.openstreetmap.josm.tools.CheckParameterUtil;
@@ -65,7 +66,7 @@ import org.w3c.dom.NodeList;
 public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource {
     private static final String PATTERN_HEADER  = "\\{header\\(([^,]+),([^}]+)\\)\\}";
 
-    private static final String URL_GET_ENCODING_PARAMS = "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER={layer}&STYLE={style}&"
+    private static final String URL_GET_ENCODING_PARAMS = "SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER={layer}&STYLE={Style}&"
             + "FORMAT={format}&tileMatrixSet={TileMatrixSet}&tileMatrix={TileMatrix}&tileRow={TileRow}&tileCol={TileCol}";
 
     private static final String[] ALL_PATTERNS = {
@@ -78,6 +79,8 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
         EastNorth topLeftCorner;
         int tileWidth;
         int tileHeight;
+        public int matrixWidth = -1;
+        public int matrixHeight = -1;
     }
 
     private static class TileMatrixSet {
@@ -97,6 +100,7 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
         String name;
         Map<String, TileMatrixSet> tileMatrixSetByCRS = new ConcurrentHashMap<>();
         public String baseUrl;
+        public String style;
     }
 
     private enum TransferMode {
@@ -161,7 +165,6 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
     private TileMatrixSet currentTileMatrixSet;
     private double crsScale;
     private TransferMode transferMode;
-    private String style = "";
 
     /**
      * Creates a tile source based on imagery info
@@ -228,9 +231,8 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
             return parseLayer(layersNodeList, matrixSetById);
 
         } catch (Exception e) {
-            Main.error(e);
+            throw new IllegalArgumentException(e);
         }
-        return null;
     }
 
     private static String normalizeCapabilitiesUrl(String url) throws MalformedURLException {
@@ -247,6 +249,10 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
             layer.format = getStringByXpath(layerNode, "Format");
             layer.name = getStringByXpath(layerNode, "Identifier");
             layer.baseUrl = getStringByXpath(layerNode, "ResourceURL[@resourceType='tile']/@template");
+            layer.style = getStringByXpath(layerNode, "Style[@isDefault='true']/Identifier");
+            if (layer.style == null) {
+                layer.style = "";
+            }
             NodeList tileMatrixSetLinks = getByXpath(layerNode, "TileMatrixSetLink");
             for (int tileMatrixId = 0; tileMatrixId < tileMatrixSetLinks.getLength(); tileMatrixId++) {
                 Node tileMatrixLink = tileMatrixSetLinks.item(tileMatrixId);
@@ -267,15 +273,27 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
             matrixSet.identifier = getStringByXpath(matrixSetNode, "Identifier");
             matrixSet.crs = crsToCode(getStringByXpath(matrixSetNode, "SupportedCRS"));
             NodeList tileMatrixList = getByXpath(matrixSetNode, "TileMatrix");
+            Projection matrixProj = Projections.getProjectionByCode(matrixSet.crs);
+            if (matrixProj == null) {
+                // use current projection if none found. Maybe user is using custom string
+                matrixProj = Main.getProjection();
+            }
             for (int matrixId = 0; matrixId < tileMatrixList.getLength(); matrixId++) {
                 Node tileMatrixNode = tileMatrixList.item(matrixId);
                 TileMatrix tileMatrix = new TileMatrix();
                 tileMatrix.identifier = getStringByXpath(tileMatrixNode, "Identifier");
                 tileMatrix.scaleDenominator = Double.parseDouble(getStringByXpath(tileMatrixNode, "ScaleDenominator"));
                 String[] topLeftCorner = getStringByXpath(tileMatrixNode, "TopLeftCorner").split(" ");
-                tileMatrix.topLeftCorner = new EastNorth(Double.parseDouble(topLeftCorner[1]), Double.parseDouble(topLeftCorner[0]));
+
+                if (matrixProj.switchXY()) {
+                    tileMatrix.topLeftCorner = new EastNorth(Double.parseDouble(topLeftCorner[1]), Double.parseDouble(topLeftCorner[0]));
+                } else {
+                    tileMatrix.topLeftCorner = new EastNorth(Double.parseDouble(topLeftCorner[0]), Double.parseDouble(topLeftCorner[1]));
+                }
                 tileMatrix.tileHeight = Integer.parseInt(getStringByXpath(tileMatrixNode, "TileHeight"));
                 tileMatrix.tileWidth = Integer.parseInt(getStringByXpath(tileMatrixNode, "TileHeight"));
+                tileMatrix.matrixWidth = getOptionalIntegerByXpath(tileMatrixNode, "MatrixWidth");
+                tileMatrix.matrixHeight = getOptionalIntegerByXpath(tileMatrixNode, "MatrixHeight");
                 if (tileMatrix.tileHeight != tileMatrix.tileWidth) {
                     throw new AssertionError(tr("Only square tiles are supported. {0}x{1} returned by server for TileMatrix identifier {2}",
                             tileMatrix.tileHeight, tileMatrix.tileWidth, tileMatrix.identifier));
@@ -290,9 +308,17 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
 
     private static String crsToCode(String crsIdentifier) {
         if (crsIdentifier.startsWith("urn:ogc:def:crs:")) {
-            return crsIdentifier.replaceFirst("urn:ogc:def:crs:([^:]*):[^:]*:(.*)$", "$1:$2");
+            return crsIdentifier.replaceFirst("urn:ogc:def:crs:([^:]*):.*:(.*)$", "$1:$2");
         }
         return crsIdentifier;
+    }
+
+    private int getOptionalIntegerByXpath(Node document, String xpathQuery) throws XPathExpressionException {
+        String ret = getStringByXpath(document, xpathQuery);
+        if (ret == null || "".equals(ret)) {
+            return -1;
+        }
+        return Integer.parseInt(ret);
     }
 
     private static String getStringByXpath(Node document, String xpathQuery) throws XPathExpressionException {
@@ -373,7 +399,7 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
                 .replaceAll("\\{TileMatrix\\}", tileMatrix.identifier)
                 .replaceAll("\\{TileRow\\}", Integer.toString(tiley))
                 .replaceAll("\\{TileCol\\}", Integer.toString(tilex))
-                .replaceAll("\\{Style\\}", this.style);
+                .replaceAll("\\{Style\\}", this.currentLayer.style);
     }
 
     /**
@@ -438,7 +464,7 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
             return Main.getProjection().getWorldBoundsLatLon().getCenter().toCoordinate();
         }
         double scale = matrix.scaleDenominator * this.crsScale;
-        EastNorth ret = new EastNorth(matrix.topLeftCorner.getX() + x * scale, matrix.topLeftCorner.getY() - y * scale);
+        EastNorth ret = new EastNorth(matrix.topLeftCorner.east() + x * scale, matrix.topLeftCorner.north() - y * scale);
         return Main.getProjection().eastNorth2latlon(ret).toCoordinate();
     }
 
@@ -584,11 +610,16 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
         if (matrix == null) {
             return 0;
         }
+
+        if (matrix.matrixHeight != -1) {
+            return matrix.matrixHeight;
+        }
+
         double scale = matrix.scaleDenominator * this.crsScale;
-        Bounds bounds = Main.getProjection().getWorldBoundsLatLon();
+        Bounds bounds = proj.getWorldBoundsLatLon();
         EastNorth min = proj.latlon2eastNorth(bounds.getMin());
         EastNorth max = proj.latlon2eastNorth(bounds.getMax());
-        return (int) Math.ceil(Math.abs(max.getY() - min.getY()) / scale);
+        return (int) Math.ceil(Math.abs(max.north() - min.north()) / scale);
     }
 
     private int getTileXMax(int zoom, Projection proj) {
@@ -596,10 +627,14 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
         if (matrix == null) {
             return 0;
         }
+        if (matrix.matrixWidth != -1) {
+            return matrix.matrixWidth;
+        }
+
         double scale = matrix.scaleDenominator * this.crsScale;
-        Bounds bounds = Main.getProjection().getWorldBoundsLatLon();
+        Bounds bounds = proj.getWorldBoundsLatLon();
         EastNorth min = proj.latlon2eastNorth(bounds.getMin());
         EastNorth max = proj.latlon2eastNorth(bounds.getMax());
-        return (int) Math.ceil(Math.abs(max.getX() - min.getX()) / scale);
+        return (int) Math.ceil(Math.abs(max.east() - min.east()) / scale);
     }
 }
