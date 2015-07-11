@@ -214,9 +214,9 @@ public class CachedFile {
         try {
             url = new URL(name);
             if ("file".equals(url.getProtocol())) {
-                cacheFile = new File(name.substring("file:/".length()));
+                cacheFile = new File(name.substring("file:/".length() - 1));
                 if (!cacheFile.exists()) {
-                    cacheFile = new File(name.substring("file://".length()));
+                    cacheFile = new File(name.substring("file://".length() - 1));
                 }
             } else {
                 cacheFile = checkLocal(url);
