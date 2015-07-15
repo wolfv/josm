@@ -3,21 +3,17 @@ package org.openstreetmap.josm.gui.layer;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-import java.io.IOException;
-import java.util.Map;
-
+import org.apache.commons.jcs.access.CacheAccess;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileLoader;
-import org.openstreetmap.gui.jmapviewer.interfaces.TileLoaderListener;
-import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
+import org.openstreetmap.gui.jmapviewer.tilesources.AbstractTMSTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.ScanexTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.TMSTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.TemplatedTMSTileSource;
+import org.openstreetmap.josm.data.cache.BufferedImageCacheEntry;
 import org.openstreetmap.josm.data.imagery.CachedAttributionBingAerialTileSource;
-import org.openstreetmap.josm.data.imagery.CachedTileLoaderFactory;
 import org.openstreetmap.josm.data.imagery.ImageryInfo;
 import org.openstreetmap.josm.data.imagery.ImageryInfo.ImageryType;
 import org.openstreetmap.josm.data.imagery.TMSCachedTileLoader;
-import org.openstreetmap.josm.data.imagery.TileLoaderFactory;
 import org.openstreetmap.josm.data.preferences.BooleanProperty;
 import org.openstreetmap.josm.data.preferences.IntegerProperty;
 import org.openstreetmap.josm.data.projection.Projection;
@@ -31,7 +27,9 @@ import org.openstreetmap.josm.data.projection.Projection;
  * @author Upliner &lt;upliner@gmail.com&gt;
  *
  */
-public class TMSLayer extends AbstractTileSourceLayer {
+public class TMSLayer extends AbstractCachedTileSourceLayer {
+    private static final String CACHE_REGION_NAME = "TMS";
+
     private static final String PREFERENCE_PREFIX = "imagery.tms";
 
     /** minimum zoom level for TMS layer */
@@ -44,17 +42,6 @@ public class TMSLayer extends AbstractTileSourceLayer {
     public static final BooleanProperty PROP_ADD_TO_SLIPPYMAP_CHOOSER = new BooleanProperty(PREFERENCE_PREFIX + ".add_to_slippymap_chooser",
             true);
 
-    /** loader factory responsible for loading tiles for this layer */
-    public static TileLoaderFactory loaderFactory = new CachedTileLoaderFactory("TMS"){
-
-        @Override
-        protected TileLoader getLoader(TileLoaderListener listener, String cacheName, int connectTimeout,
-                int readTimeout, Map<String, String> headers, String cacheDir) throws IOException {
-            return new TMSCachedTileLoader(listener, cacheName, connectTimeout, readTimeout, headers, cacheDir);
-        }
-
-    };
-
     /**
      * Create a layer based on ImageryInfo
      * @param info description of the layer
@@ -63,19 +50,6 @@ public class TMSLayer extends AbstractTileSourceLayer {
         super(info);
     }
 
-    /**
-     * Plugins that wish to set custom tile loader should call this method
-     * @param newLoaderFactory that will be used to load tiles
-     */
-
-    public static void setTileLoaderFactory(TileLoaderFactory newLoaderFactory) {
-        loaderFactory = newLoaderFactory;
-    }
-
-    @Override
-    protected TileLoaderFactory getTileLoaderFactory() {
-        return loaderFactory;
-    }
 
     /**
      * Creates and returns a new TileSource instance depending on the {@link ImageryType}
@@ -91,7 +65,7 @@ public class TMSLayer extends AbstractTileSourceLayer {
      * @throws IllegalArgumentException if url from imagery info is null or invalid
      */
     @Override
-    protected TileSource getTileSource(ImageryInfo info) throws IllegalArgumentException {
+    protected AbstractTMSTileSource getTileSource(ImageryInfo info) throws IllegalArgumentException {
         return getTileSourceStatic(info);
     }
 
@@ -121,7 +95,7 @@ public class TMSLayer extends AbstractTileSourceLayer {
      * @return a new TileSource instance or null if no TileSource for the ImageryInfo/ImageryType could be found.
      * @throws IllegalArgumentException if url from imagery info is null or invalid
      */
-    public static TileSource getTileSourceStatic(ImageryInfo info) throws IllegalArgumentException {
+    public static AbstractTMSTileSource getTileSourceStatic(ImageryInfo info) throws IllegalArgumentException {
         if (info.getImageryType() == ImageryType.TMS) {
             TemplatedTMSTileSource.checkUrl(info.getUrl());
             TMSTileSource t = new TemplatedTMSTileSource(info);
@@ -135,6 +109,21 @@ public class TMSLayer extends AbstractTileSourceLayer {
         return null;
     }
 
+    @Override
+    protected Class<? extends TileLoader> getTileLoaderClass() {
+        return TMSCachedTileLoader.class;
+    }
 
+    @Override
+    protected String getCacheName() {
+        return CACHE_REGION_NAME;
+    }
+
+    /**
+     * @return cache for TMS region
+     */
+    public static CacheAccess<String, BufferedImageCacheEntry> getCache() {
+        return AbstractCachedTileSourceLayer.getCache(CACHE_REGION_NAME);
+    }
 
 }
