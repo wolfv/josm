@@ -198,6 +198,9 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
      * @return checks if object from cache has sufficient data to be returned
      */
     protected boolean isObjectLoadable() {
+        if (cacheData == null) {
+            return false;
+        }
         byte[] content = cacheData.getContent();
         return content != null && content.length > 0;
     }
@@ -337,7 +340,12 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
                 }
 
                 attributes.setResponseCode(urlConn.getResponseCode());
-                byte[] raw = Utils.readBytesFromStream(urlConn.getInputStream());
+                byte[] raw;
+                if (urlConn.getResponseCode() == 200) {
+                    raw = Utils.readBytesFromStream(urlConn.getInputStream());
+                } else {
+                    raw = new byte[]{};
+                }
 
                 if (isResponseLoadable(urlConn.getHeaderFields(), urlConn.getResponseCode(), raw)) {
                     // we need to check cacheEmpty, so for cases, when data is returned, but we want to store
@@ -360,6 +368,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
         } catch (FileNotFoundException e) {
             log.log(Level.FINE, "JCS - Caching empty object as server returned 404 for: {0}", getUrl());
             attributes.setResponseCode(404);
+            attributes.setErrorMessage(e.toString());
             boolean doCache = isResponseLoadable(null, 404, null) || cacheAsEmpty();
             if (doCache) {
                 cacheData = createCacheEntry(new byte[]{});
@@ -368,7 +377,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
             return doCache;
         } catch (IOException e) {
             log.log(Level.FINE, "JCS - IOExecption during communication with server for: {0}", getUrl());
-
+            attributes.setErrorMessage(e.toString());
             attributes.setResponseCode(499); // set dummy error code
             boolean doCache = isResponseLoadable(null, 499, null) || cacheAsEmpty(); //generic 499 error code returned
             if (doCache) {
@@ -377,6 +386,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
             }
             return doCache;
         } catch (Exception e) {
+            attributes.setErrorMessage(e.toString());
             log.log(Level.WARNING, "JCS - Exception during download {0}",  getUrl());
             Main.warn(e);
         }
@@ -439,8 +449,10 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
         urlConn.setRequestProperty("Accept", "text/html, image/png, image/jpeg, image/gif, */*");
         urlConn.setReadTimeout(readTimeout); // 30 seconds read timeout
         urlConn.setConnectTimeout(connectTimeout);
-        for (Map.Entry<String, String> e: headers.entrySet()) {
-            urlConn.setRequestProperty(e.getKey(), e.getValue());
+        if (headers != null) {
+            for (Map.Entry<String, String> e: headers.entrySet()) {
+                urlConn.setRequestProperty(e.getKey(), e.getValue());
+            }
         }
         if (force) {
             urlConn.setUseCaches(false);
