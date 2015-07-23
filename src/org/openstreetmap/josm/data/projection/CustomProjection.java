@@ -35,8 +35,8 @@ import org.openstreetmap.josm.tools.Utils;
  */
 public class CustomProjection extends AbstractProjection {
 
-    private static final Map<String, Double> UNITS_TO_METERS = getUnitsToMeters();
     private static final double METER_PER_UNIT_DEGREE = 2 * Math.PI * 6370997 / 360;
+    private static final Map<String, Double> UNITS_TO_METERS = getUnitsToMeters();
 
     /**
      * pref String that defines the projection
@@ -102,6 +102,10 @@ public class CustomProjection extends AbstractProjection {
         to_meter("to_meter", true),
         /** definition of axis for projection */
         axis("axis", true),
+        /** UTM zone */
+        zone("zone", true),
+        /** indicate southern hemisphere for UTM */
+        south("south", false),
         // JOSM extensions, not present in PROJ.4
         wmssrs("wmssrs", true),
         bounds("bounds", true);
@@ -183,7 +187,28 @@ public class CustomProjection extends AbstractProjection {
             Map<String, String> parameters = parseParameterList(pref);
             ellps = parseEllipsoid(parameters);
             datum = parseDatum(parameters, ellps);
+            if (ellps == null) {
+                ellps = datum.getEllipsoid();
+            }
             proj = parseProjection(parameters, ellps);
+            // "utm" is a shortcut for a set of parameters
+            if ("utm".equals(parameters.get(Param.proj.key))) {
+                String zoneStr = parameters.get(Param.zone.key);
+                Integer zone;
+                if (zoneStr == null)
+                    throw new ProjectionConfigurationException(tr("UTM projection (''+proj=utm'') requires ''+zone=...'' parameter."));
+                try {
+                    zone = Integer.parseInt(zoneStr);
+                } catch (NumberFormatException e) {
+                    zone = null;
+                }
+                if (zone == null || zone < 1 || zone > 60)
+                    throw new ProjectionConfigurationException(tr("Expected integer value in range 1-60 for ''+zone=...'' paramter."));
+                this.lon0 = 6 * zone - 183;
+                this.k0 = 0.9996;
+                this.x0 = 500000;
+                this.y0 = parameters.containsKey(Param.south.key) ? 10000000 : 0;
+            }
             String s = parameters.get(Param.x_0.key);
             if (s != null) {
                 this.x0 = parseDouble(s, Param.x_0.key);
@@ -210,7 +235,12 @@ public class CustomProjection extends AbstractProjection {
             }
             s = parameters.get(Param.units.key);
             if (s != null) {
-                this.metersPerUnit = UNITS_TO_METERS.get(s);
+                s = Utils.strip(s, "\"");
+                if (UNITS_TO_METERS.containsKey(s)) {
+                    this.metersPerUnit = UNITS_TO_METERS.get(s);
+                } else {
+                    Main.warn("No metersPerUnit found for: " + s);
+                }
             }
             s = parameters.get(Param.to_meter.key);
             if (s != null) {
@@ -315,13 +345,23 @@ public class CustomProjection extends AbstractProjection {
                 parameters.containsKey(Param.f.key) ||
                 parameters.containsKey(Param.b.key))
             throw new ProjectionConfigurationException(tr("Combination of ellipsoid parameters is not supported."));
-        if (parameters.containsKey(Param.no_defs.key))
-            throw new ProjectionConfigurationException(tr("Ellipsoid required (+ellps=* or +a=*, +b=*)"));
-        // nothing specified, use WGS84 as default
-        return Ellipsoid.WGS84;
+        return null;
     }
 
     public Datum parseDatum(Map<String, String> parameters, Ellipsoid ellps) throws ProjectionConfigurationException {
+        String datumId = parameters.get(Param.datum.key);
+        if (datumId != null) {
+            Datum datum = Projections.getDatum(datumId);
+            if (datum == null) throw new ProjectionConfigurationException(tr("Unknown datum identifier: ''{0}''", datumId));
+            return datum;
+        }
+        if (ellps == null) {
+            if (parameters.containsKey(Param.no_defs.key))
+                throw new ProjectionConfigurationException(tr("Ellipsoid required (+ellps=* or +a=*, +b=*)"));
+            // nothing specified, use WGS84 as default
+            ellps = Ellipsoid.WGS84;
+        }
+
         String nadgridsId = parameters.get(Param.nadgrids.key);
         if (nadgridsId != null) {
             if (nadgridsId.startsWith("@")) {
@@ -339,12 +379,6 @@ public class CustomProjection extends AbstractProjection {
         if (towgs84 != null)
             return parseToWGS84(towgs84, ellps);
 
-        String datumId = parameters.get(Param.datum.key);
-        if (datumId != null) {
-            Datum datum = Projections.getDatum(datumId);
-            if (datum == null) throw new ProjectionConfigurationException(tr("Unknown datum identifier: ''{0}''", datumId));
-            return datum;
-        }
         if (parameters.containsKey(Param.no_defs.key))
             throw new ProjectionConfigurationException(tr("Datum required (+datum=*, +towgs84=* or +nadgrids=*)"));
         return new CentricDatum(null, null, ellps);
@@ -399,6 +433,10 @@ public class CustomProjection extends AbstractProjection {
         String id = parameters.get(Param.proj.key);
         if (id == null) throw new ProjectionConfigurationException(tr("Projection required (+proj=*)"));
 
+        // "utm" is not a real projection, but a shortcut for a set of parameters
+        if ("utm".equals(id)) {
+            id = "tmerc";
+        }
         Proj proj =  Projections.getBaseProjection(id);
         if (proj == null) throw new ProjectionConfigurationException(tr("Unknown projection identifier: ''{0}''", id));
 
@@ -435,7 +473,7 @@ public class CustomProjection extends AbstractProjection {
 
     public static double parseDouble(Map<String, String> parameters, String parameterName) throws ProjectionConfigurationException {
         if (!parameters.containsKey(parameterName))
-            throw new IllegalArgumentException(tr("Unknown parameter ''{0}''", parameterName));
+            throw new ProjectionConfigurationException(tr("Unknown parameter ''{0}''", parameterName));
         String doubleStr = parameters.get(parameterName);
         if (doubleStr == null)
             throw new ProjectionConfigurationException(
