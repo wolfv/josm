@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.openstreetmap.gui.jmapviewer.Coordinate;
+import org.openstreetmap.gui.jmapviewer.OsmMercator;
 import org.openstreetmap.gui.jmapviewer.Tile;
 import org.openstreetmap.gui.jmapviewer.TileXY;
 import org.openstreetmap.gui.jmapviewer.interfaces.ICoordinate;
@@ -38,6 +38,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     private Map<String, String> headers = new ConcurrentHashMap<>();
     private final List<String> serverProjections;
     private EastNorth topLeftCorner;
+    private Bounds worldBounds;
 
     private static final String PATTERN_HEADER  = "\\{header\\(([^,]+),([^}]+)\\)\\}";
     private static final String PATTERN_PROJ    = "\\{proj(\\([^})]+\\))?\\}";
@@ -78,9 +79,9 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
      * @param proj new projection that shall be used for computations
      */
     public void initProjection(Projection proj) {
-        Bounds bounds = proj.getWorldBoundsLatLon();
-        EastNorth min = proj.latlon2eastNorth(bounds.getMin());
-        EastNorth max = proj.latlon2eastNorth(bounds.getMax());
+        this.worldBounds = getWorldBounds();
+        EastNorth min = proj.latlon2eastNorth(worldBounds.getMin());
+        EastNorth max = proj.latlon2eastNorth(worldBounds.getMax());
         this.topLeftCorner = new EastNorth(min.east(), max.north());
     }
 
@@ -166,6 +167,115 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     }
 
     @Override
+    public String getTileId(int zoom, int tilex, int tiley) {
+        return getTileUrl(zoom, tilex, tiley);
+    }
+
+    @Override
+    public ICoordinate tileXYToLatLon(Tile tile) {
+        return tileXYToLatLon(tile.getXtile(), tile.getYtile(), tile.getZoom());
+    }
+
+    @Override
+    public ICoordinate tileXYToLatLon(TileXY xy, int zoom) {
+        return tileXYToLatLon(xy.getXIndex(), xy.getYIndex(), zoom);
+    }
+
+    @Override
+    public ICoordinate tileXYToLatLon(int x, int y, int zoom) {
+        return Main.getProjection().eastNorth2latlon(getTileEastNorth(x, y, zoom)).toCoordinate();
+    }
+
+    @Override
+    public TileXY latLonToTileXY(double lat, double lon, int zoom) {
+        Projection proj = Main.getProjection();
+        EastNorth enPoint = proj.latlon2eastNorth(new LatLon(lat, lon));
+        double scale = getDegreesPerTile(zoom);
+        return new TileXY(
+                (enPoint.east() - topLeftCorner.east()) / scale,
+                (topLeftCorner.north() - enPoint.north()) / scale
+                );
+    }
+
+    @Override
+    public TileXY latLonToTileXY(ICoordinate point, int zoom) {
+        return latLonToTileXY(point.getLat(),  point.getLon(), zoom);
+    }
+
+    @Override
+    public int getTileXMax(int zoom) {
+        LatLon bottomRight = new LatLon(worldBounds.getMinLat(), worldBounds.getMaxLon());
+        return latLonToTileXY(bottomRight.toCoordinate(), zoom).getXIndex();
+    }
+
+    @Override
+    public int getTileXMin(int zoom) {
+        return 0;
+    }
+
+    @Override
+    public int getTileYMax(int zoom) {
+        LatLon bottomRight = new LatLon(worldBounds.getMinLat(), worldBounds.getMaxLon());
+        return latLonToTileXY(bottomRight.toCoordinate(), zoom).getYIndex();
+    }
+
+    @Override
+    public int getTileYMin(int zoom) {
+        return 0;
+    }
+
+    @Override
+    public Point latLonToXY(double lat, double lon, int zoom) {
+        double scale = getDegreesPerTile(zoom) / getTileSize();
+        EastNorth point = Main.getProjection().latlon2eastNorth(new LatLon(lat, lon));
+        return new Point(
+                    (int) Math.round((point.east() - topLeftCorner.east())   / scale),
+                    (int) Math.round((topLeftCorner.north() - point.north()) / scale)
+                );
+    }
+
+    @Override
+    public Point latLonToXY(ICoordinate point, int zoom) {
+        return latLonToXY(point.getLat(), point.getLon(), zoom);
+    }
+
+    @Override
+    public ICoordinate XYToLatLon(Point point, int zoom) {
+        return XYToLatLon(point.x, point.y, zoom);
+    }
+
+    @Override
+    public ICoordinate XYToLatLon(int x, int y, int zoom) {
+        double scale = getDegreesPerTile(zoom) / getTileSize();
+        Projection proj = Main.getProjection();
+        EastNorth ret = new EastNorth(
+                topLeftCorner.east() + x * scale,
+                topLeftCorner.north() - y * scale
+                );
+        return proj.eastNorth2latlon(ret).toCoordinate();
+    }
+
+    @Override
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    @Override
+    public double lonToTileX(double lon, int zoom) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public double tileXToLon(int x, int zoom) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public double tileYToLat(int y, int zoom) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
     public double getDistance(double lat1, double lon1, double lat2, double lon2) {
         throw new UnsupportedOperationException("Not implemented");
     }
@@ -193,120 +303,6 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     @Override
     public double latToTileY(double lat, int zoom) {
         throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public Coordinate tileXYToLatLon(Tile tile) {
-        return tileXYToLatLon(tile.getXtile(), tile.getYtile(), tile.getZoom());
-    }
-
-    @Override
-    public Coordinate tileXYToLatLon(TileXY xy, int zoom) {
-        return tileXYToLatLon(xy.getXIndex(), xy.getYIndex(), zoom);
-    }
-
-    @Override
-    public Coordinate tileXYToLatLon(int x, int y, int zoom) {
-        LatLon ret = Main.getProjection().eastNorth2latlon(getTileEastNorth(x, y, zoom));
-        return new Coordinate(ret.lat(),  ret.lon());
-    }
-
-    @Override
-    public TileXY latLonToTileXY(double lat, double lon, int zoom) {
-        Projection proj = Main.getProjection();
-        EastNorth enPoint = proj.latlon2eastNorth(new LatLon(lat, lon));
-        double scale = getDegreesPerTile(zoom);
-        return new TileXY(
-                (enPoint.east() - topLeftCorner.east()) / scale,
-                (topLeftCorner.north() - enPoint.north()) / scale
-                );
-    }
-
-    @Override
-    public TileXY latLonToTileXY(ICoordinate point, int zoom) {
-        return latLonToTileXY(point.getLat(),  point.getLon(), zoom);
-    }
-
-    @Override
-    public int getTileXMax(int zoom) {
-        Projection proj = Main.getProjection();
-        double scale = getDegreesPerTile(zoom);
-        Bounds bounds = Main.getProjection().getWorldBoundsLatLon();
-        EastNorth min = proj.latlon2eastNorth(bounds.getMin());
-        EastNorth max = proj.latlon2eastNorth(bounds.getMax());
-        return (int) Math.ceil(Math.abs(max.getX() - min.getX()) / scale);
-    }
-
-    @Override
-    public int getTileXMin(int zoom) {
-        return 0;
-    }
-
-    @Override
-    public int getTileYMax(int zoom) {
-        Projection proj = Main.getProjection();
-        double scale = getDegreesPerTile(zoom);
-        Bounds bounds = Main.getProjection().getWorldBoundsLatLon();
-        EastNorth min = proj.latlon2eastNorth(bounds.getMin());
-        EastNorth max = proj.latlon2eastNorth(bounds.getMax());
-        return (int) Math.ceil(Math.abs(max.getY() - min.getY()) / scale);
-    }
-
-    @Override
-    public int getTileYMin(int zoom) {
-        return 0;
-    }
-
-    @Override
-    public Point latLonToXY(double lat, double lon, int zoom) {
-        double scale = getDegreesPerTile(zoom) / getTileSize();
-        EastNorth point = Main.getProjection().latlon2eastNorth(new LatLon(lat, lon));
-        return new Point(
-                    (int) Math.round((point.east() - topLeftCorner.east())   / scale),
-                    (int) Math.round((topLeftCorner.north() - point.north()) / scale)
-                );
-    }
-
-    @Override
-    public Point latLonToXY(ICoordinate point, int zoom) {
-        return latLonToXY(point.getLat(), point.getLon(), zoom);
-    }
-
-    @Override
-    public Coordinate XYToLatLon(Point point, int zoom) {
-        return XYToLatLon(point.x, point.y, zoom);
-    }
-
-    @Override
-    public Coordinate XYToLatLon(int x, int y, int zoom) {
-        double scale = getDegreesPerTile(zoom) / getTileSize();
-        Projection proj = Main.getProjection();
-        EastNorth ret = new EastNorth(
-                topLeftCorner.east() + x * scale,
-                topLeftCorner.north() - y * scale
-                );
-        LatLon ll = proj.eastNorth2latlon(ret);
-        return new Coordinate(ll.lat(), ll.lon());
-    }
-
-    @Override
-    public double lonToTileX(double lon, int zoom) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public double tileXToLon(int x, int zoom) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public double tileYToLat(int y, int zoom) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public Map<String, String> getHeaders() {
-        return headers;
     }
 
     /**
@@ -353,13 +349,10 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     }
 
     private double getDegreesPerTile(int zoom) {
-        return getDegreesPerTile(zoom, Main.getProjection());
-    }
+        Projection proj = Main.getProjection();
+        EastNorth min = proj.latlon2eastNorth(worldBounds.getMin());
+        EastNorth max = proj.latlon2eastNorth(worldBounds.getMax());
 
-    private double getDegreesPerTile(int zoom, Projection proj) {
-        Bounds bounds = proj.getWorldBoundsLatLon();
-        EastNorth min = proj.latlon2eastNorth(bounds.getMin());
-        EastNorth max = proj.latlon2eastNorth(bounds.getMax());
         int tilesPerZoom = (int) Math.pow(2, zoom - 1);
         return Math.max(
                 Math.abs(max.getY() - min.getY()) / tilesPerZoom,
@@ -367,8 +360,23 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
                 );
     }
 
-    @Override
-    public String getTileId(int zoom, int tilex, int tiley) {
-        return getTileUrl(zoom, tilex, tiley);
+    /**
+     * returns world bounds, but detect situation, when default bounds are provided (-90, -180, 90, 180), and projection
+     * returns very close values for both min and max X. To work around this problem, cap this projection on north and south
+     * pole, the same way they are capped in Mercator projection, so conversions should work properly
+     */
+    private final static Bounds getWorldBounds() {
+        Projection proj = Main.getProjection();
+        Bounds bounds = proj.getWorldBoundsLatLon();
+        EastNorth min = proj.latlon2eastNorth(bounds.getMin());
+        EastNorth max = proj.latlon2eastNorth(bounds.getMax());
+
+        if (Math.abs(min.getX() - max.getX()) < 1 && bounds.equals(new Bounds(new LatLon(-90, -180), new LatLon(90, 180)))) {
+            return new Bounds(
+                    new LatLon(OsmMercator.MIN_LAT, bounds.getMinLon()),
+                    new LatLon(OsmMercator.MAX_LAT, bounds.getMaxLon())
+                    );
+        }
+        return bounds;
     }
 }
