@@ -173,16 +173,16 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
         Map<String, String> headers = getHeaders(tileSource);
 
         tileLoader = getTileLoaderFactory().makeTileLoader(this, headers);
-        if (tileLoader instanceof TMSCachedTileLoader) {
-            tileCache = (TileCache) tileLoader;
-        } else {
-            tileCache = new MemoryTileCache();
-        }
+        /*
+         *  use MemoryTileCache instead of tileLoader JCS cache, as tileLoader caches only content (byte[] of image)
+         *  and MemoryTileCache caches whole Tile. This gives huge performance improvement when a lot of tiles are visible
+         *  in MapView (for example - when limiting min zoom in imagery)
+         */
+        tileCache = new MemoryTileCache(AbstractCachedTileSourceLayer.MEMORY_CACHE_SIZE.get());
 
         try {
             if ("file".equalsIgnoreCase(new URL(tileSource.getBaseUrl()).getProtocol())) {
                 tileLoader = new OsmTileLoader(this);
-                tileCache = new MemoryTileCache();
             }
         } catch (MalformedURLException e) {
             // ignore, assume that this is not a file
@@ -192,7 +192,7 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
         }
 
         if (tileLoader == null)
-            tileLoader = new OsmTileLoader(this);
+            tileLoader = new OsmTileLoader(this, headers);
     }
 
     @Override
@@ -496,6 +496,10 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
     @Override
     public void hookUpMapView() {
         this.tileSource = getTileSource(info);
+        if (this.tileSource == null) {
+            throw new IllegalArgumentException(tr("Failed to create tile source"));
+        }
+
         projectionChanged(null, Main.getProjection()); // check if projection is supported
         initTileSource(this.tileSource);
 
@@ -857,7 +861,7 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
             return false;
         if (tile.isLoading())
             return false;
-        tileLoader.createTileLoaderJob(tile).submit();
+        tileLoader.createTileLoaderJob(tile).submit(force);
         return true;
     }
 
@@ -1032,10 +1036,29 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
 
     private void myDrawString(Graphics g, String text, int x, int y) {
         Color oldColor = g.getColor();
-        g.setColor(Color.black);
-        g.drawString(text, x+1, y+1);
-        g.setColor(oldColor);
-        g.drawString(text, x, y);
+        String textToDraw = text;
+        if (g.getFontMetrics().stringWidth(text) > tileSource.getTileSize()) {
+            // text longer than tile size, split it
+            StringBuilder line = new StringBuilder();
+            StringBuilder ret = new StringBuilder();
+            for (String s: text.split(" ")) {
+                if (g.getFontMetrics().stringWidth(line.toString() + s) > tileSource.getTileSize()) {
+                    ret.append(line).append("\n");
+                    line.setLength(0);
+                }
+                line.append(s).append(" ");
+            }
+            ret.append(line);
+            textToDraw = ret.toString();
+        }
+        int offset = 0;
+        for (String s: textToDraw.split("\n")) {
+            g.setColor(Color.black);
+            g.drawString(s, x + 1, y + offset + 1);
+            g.setColor(oldColor);
+            g.drawString(s, x, y + offset);
+            offset += g.getFontMetrics().getHeight() + 3;
+        }
     }
 
     private void paintTileText(TileSet ts, Tile tile, Graphics g, MapView mv, int zoom, Tile t) {
@@ -1460,18 +1483,13 @@ public abstract class AbstractTileSourceLayer extends ImageryLayer implements Im
 
         //g.drawString("currentZoomLevel=" + currentZoomLevel, 120, 120);
         g.setColor(Color.lightGray);
-        if (!autoZoom) {
-            if (ts.insane()) {
-                myDrawString(g, tr("zoom in to load any tiles"), 120, 120);
-            } else if (ts.tooLarge()) {
-                myDrawString(g, tr("zoom in to load more tiles"), 120, 120);
-            } else if (ts.tooSmall()) {
-                myDrawString(g, tr("increase zoom level to see more detail"), 120, 120);
-            }
-        }
 
-        if (zoom < getMinZoomLvl() && (ts.insane() || ts.tooLarge())) {
+        if (ts.insane()) {
             myDrawString(g, tr("zoom in to load any tiles"), 120, 120);
+        } else if (ts.tooLarge()) {
+            myDrawString(g, tr("zoom in to load more tiles"), 120, 120);
+        } else if (!autoZoom && ts.tooSmall()) {
+            myDrawString(g, tr("increase zoom level to see more detail"), 120, 120);
         }
 
         if (noTilesAtZoom) {

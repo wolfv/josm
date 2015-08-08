@@ -52,7 +52,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
     protected static final long EXPIRE_TIME_SERVER_LIMIT = 1000L * 60 * 60 * 24 * 28; // 4 weeks
     // Absolute expire time limit. Cached tiles that are older will not be used,
     // even if the refresh from the server fails.
-    protected static final long ABSOLUTE_EXPIRE_TIME_LIMIT = Long.MAX_VALUE; // unlimited
+    protected static final long ABSOLUTE_EXPIRE_TIME_LIMIT = 1000L * 60 * 60 * 24 * 365; // 1 year
 
     /**
      * maximum download threads that will be started
@@ -262,7 +262,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
         }
     }
 
-    private boolean isCacheElementValid() {
+    protected boolean isCacheElementValid() {
         long expires = attributes.getExpirationTime();
 
         // check by expire date set by server
@@ -275,12 +275,14 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
                         new Object[]{getUrl(), Long.toString(expires), Long.toString(now)});
                 return false;
             }
-        } else {
+        } else if (attributes.getLastModification() > 0 &&
+                now - attributes.getLastModification() > DEFAULT_EXPIRE_TIME) {
             // check by file modification date
-            if (now - attributes.getLastModification() > DEFAULT_EXPIRE_TIME) {
-                log.log(Level.FINE, "JCS - Object has expired, maximum file age reached {0}", getUrl());
-                return false;
-            }
+            log.log(Level.FINE, "JCS - Object has expired, maximum file age reached {0}", getUrl());
+            return false;
+        } else if (now - attributes.getCreateTime() > DEFAULT_EXPIRE_TIME) {
+            log.log(Level.FINE, "JCS - Object has expired, maximum time since object creation reached {0}", getUrl());
+            return false;
         }
         return true;
     }
@@ -454,6 +456,7 @@ public abstract class JCSCachedTileLoaderJob<K, V extends CacheEntry> implements
                 urlConn.setRequestProperty(e.getKey(), e.getValue());
             }
         }
+
         if (force) {
             urlConn.setUseCaches(false);
         }

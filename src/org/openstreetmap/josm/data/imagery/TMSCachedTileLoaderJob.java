@@ -187,7 +187,7 @@ public class TMSCachedTileLoaderJob extends JCSCachedTileLoaderJob<String, Buffe
                         }
                     }
                     int httpStatusCode = attributes.getResponseCode();
-                    if (!isNoTileAtZoom() && httpStatusCode >= 400 && httpStatusCode != 499) {
+                    if (!isNoTileAtZoom() && httpStatusCode >= 400) {
                         if (attributes.getErrorMessage() == null) {
                             tile.setError(tr("HTTP error {0} when loading tiles", httpStatusCode));
                         } else {
@@ -251,10 +251,10 @@ public class TMSCachedTileLoaderJob extends JCSCachedTileLoaderJob<String, Buffe
         CacheEntryAttributes ret = super.parseHeaders(urlConn);
         // keep the expiration time between MINIMUM_EXPIRES and MAXIMUM_EXPIRES, so we will cache the tiles
         // at least for some short period of time, but not too long
-        if (ret.getExpirationTime() < MINIMUM_EXPIRES) {
+        if (ret.getExpirationTime() < now + MINIMUM_EXPIRES) {
             ret.setExpirationTime(now + MINIMUM_EXPIRES);
         }
-        if (ret.getExpirationTime() > MAXIMUM_EXPIRES) {
+        if (ret.getExpirationTime() > now + MAXIMUM_EXPIRES) {
             ret.setExpirationTime(now + MAXIMUM_EXPIRES);
         }
         return ret;
@@ -266,7 +266,7 @@ public class TMSCachedTileLoaderJob extends JCSCachedTileLoaderJob<String, Buffe
      */
     public Tile getCachedTile() {
         BufferedImageCacheEntry data = get();
-        if (isObjectLoadable()) {
+        if (isObjectLoadable() && isCacheElementValid()) {
             try {
                 // set tile metadata
                 if (this.attributes != null) {
@@ -288,7 +288,7 @@ public class TMSCachedTileLoaderJob extends JCSCachedTileLoaderJob<String, Buffe
                     handleNoTileAtZoom();
                     tile.finishLoading();
                 }
-                if (attributes.getResponseCode() >= 400) {
+                if (attributes != null && attributes.getResponseCode() >= 400) {
                     if (attributes.getErrorMessage() == null) {
                         tile.setError(tr("HTTP error {0} when loading tiles", attributes.getResponseCode()));
                     } else {

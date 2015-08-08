@@ -42,7 +42,7 @@ public abstract class AbstractCachedTileSourceLayer extends AbstractTileSourceLa
     public static final IntegerProperty MEMORY_CACHE_SIZE = new IntegerProperty(PREFERENCE_PREFIX + "cache.max_objects_ram", 200);
 
     private ICacheAccess<String, BufferedImageCacheEntry> cache;
-    private TileLoaderFactory loaderFactory;
+    private volatile TileLoaderFactory loaderFactory;
 
 
     /**
@@ -88,7 +88,7 @@ public abstract class AbstractCachedTileSourceLayer extends AbstractTileSourceLa
         }
         try {
             cache = JCSCacheManager.getCache(getCacheName(),
-                    getMemoryCacheSize(),
+                    0,
                     getDiskCacheSize(),
                     CachedTileLoaderFactory.PROP_TILECACHE_DIR.get());
             return cache;
@@ -125,8 +125,8 @@ public abstract class AbstractCachedTileSourceLayer extends AbstractTileSourceLa
     public static CacheAccess<String, BufferedImageCacheEntry> getCache(String name) {
             try {
                 return JCSCacheManager.getCache(name,
-                        MEMORY_CACHE_SIZE.get(),
-                        MAX_DISK_CACHE_SIZE.get() * 1024, // MAX_DISK_CACHE_SIZE is in MB
+                        0,
+                        MAX_DISK_CACHE_SIZE.get() * 1024, // MAX_DISK_CACHE_SIZE is in MB, needs to by in sync with getDiskCacheSize
                         CachedTileLoaderFactory.PROP_TILECACHE_DIR.get());
             } catch (IOException e) {
                 Main.warn(e);
@@ -135,10 +135,6 @@ public abstract class AbstractCachedTileSourceLayer extends AbstractTileSourceLa
     }
 
     protected abstract Class<? extends TileLoader> getTileLoaderClass();
-
-    protected int getMemoryCacheSize() {
-        return MEMORY_CACHE_SIZE.get();
-    }
 
     protected int getDiskCacheSize() {
         return MAX_DISK_CACHE_SIZE.get() * 1024;

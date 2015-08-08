@@ -2,6 +2,7 @@
 package org.openstreetmap.josm.data.cache;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author Wiktor Niesiobędzki
@@ -17,13 +18,16 @@ public class CacheEntry implements Serializable {
      * @param content of the cache entry
      */
     public CacheEntry(byte[] content) {
-        this.content = content;
+        this.content = Arrays.copyOf(content, content.length);
     }
 
     /**
      * @return cache entry content
      */
     public byte[] getContent() {
-        return content;
+        if (content == null) {
+            return new byte[]{};
+        }
+        return Arrays.copyOf(content, content.length);
     }
 }

@@ -179,9 +179,13 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
             if (layerSelection.showDialog().getValue() == 1) {
                 this.currentLayer = layerSelection.getSelectedLayer();
                 // TODO: save layer information into ImageryInfo / ImageryPreferences?
-            } else {
-                throw new IllegalArgumentException(); //user canceled operation
             }
+
+            if (this.currentLayer == null) {
+                // user canceled operation or did not choose any layer
+                throw new IllegalArgumentException(tr("No layer selected"));
+            }
+
         } else if (layers.size() == 1) {
             this.currentLayer = this.layers.iterator().next();
         } else {
@@ -534,12 +538,12 @@ public class WMTSTileSource extends TMSTileSource implements TemplatedTileSource
     }
 
     @Override
-    public Coordinate XYToLatLon(Point point, int zoom) {
-        return XYToLatLon(point.x, point.y, zoom);
+    public Coordinate xyToLatLon(Point point, int zoom) {
+        return xyToLatLon(point.x, point.y, zoom);
     }
 
     @Override
-    public Coordinate XYToLatLon(int x, int y, int zoom) {
+    public Coordinate xyToLatLon(int x, int y, int zoom) {
         TileMatrix matrix = getTileMatrix(zoom);
         if (matrix == null) {
             return new Coordinate(0, 0);
