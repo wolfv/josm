@@ -36,10 +36,13 @@ import org.openstreetmap.josm.tools.CheckParameterUtil;
  * @since 8526
  */
 public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTileSource {
-    private Map<String, String> headers = new ConcurrentHashMap<>();
+    private final Map<String, String> headers = new ConcurrentHashMap<>();
     private final Set<String> serverProjections;
     private EastNorth topLeftCorner;
     private Bounds worldBounds;
+    private int[] tileXMax;
+    private int[] tileYMax;
+    private double[] degreesPerTile;
 
     private static final Pattern PATTERN_HEADER  = Pattern.compile("\\{header\\(([^,]+),([^}]+)\\)\\}");
     private static final Pattern PATTERN_PROJ    = Pattern.compile("\\{proj\\}");
@@ -88,6 +91,23 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
         EastNorth min = proj.latlon2eastNorth(worldBounds.getMin());
         EastNorth max = proj.latlon2eastNorth(worldBounds.getMax());
         this.topLeftCorner = new EastNorth(min.east(), max.north());
+
+        LatLon bottomRight = new LatLon(worldBounds.getMinLat(), worldBounds.getMaxLon());
+        tileXMax = new int[getMaxZoom() + 1];
+        tileYMax = new int[getMaxZoom() + 1];
+        degreesPerTile = new double[getMaxZoom() +1];
+        for (int zoom = getMinZoom(); zoom <= getMaxZoom(); zoom++) {
+            TileXY maxTileIndex = latLonToTileXY(bottomRight.toCoordinate(), zoom);
+            tileXMax[zoom] = maxTileIndex.getXIndex();
+            tileYMax[zoom] = maxTileIndex.getYIndex();
+            int tilesPerZoom = (int) Math.pow(2d, zoom - 1);
+            degreesPerTile[zoom] = Math.max(
+                    Math.abs(max.getY() - min.getY()) / tilesPerZoom,
+                    Math.abs(max.getX() - min.getX()) / tilesPerZoom
+                    );
+
+        }
+
     }
 
     @Override
@@ -228,8 +248,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
 
     @Override
     public int getTileXMax(int zoom) {
-        LatLon bottomRight = new LatLon(worldBounds.getMinLat(), worldBounds.getMaxLon());
-        return latLonToTileXY(bottomRight.toCoordinate(), zoom).getXIndex();
+        return tileXMax[zoom];
     }
 
     @Override
@@ -239,8 +258,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
 
     @Override
     public int getTileYMax(int zoom) {
-        LatLon bottomRight = new LatLon(worldBounds.getMinLat(), worldBounds.getMaxLon());
-        return latLonToTileXY(bottomRight.toCoordinate(), zoom).getYIndex();
+        return tileYMax[zoom];
     }
 
     @Override
@@ -372,15 +390,7 @@ public class TemplatedWMSTileSource extends TMSTileSource implements TemplatedTi
     }
 
     private double getDegreesPerTile(int zoom) {
-        Projection proj = Main.getProjection();
-        EastNorth min = proj.latlon2eastNorth(worldBounds.getMin());
-        EastNorth max = proj.latlon2eastNorth(worldBounds.getMax());
-
-        int tilesPerZoom = (int) Math.pow(2d, zoom - 1);
-        return Math.max(
-                Math.abs(max.getY() - min.getY()) / tilesPerZoom,
-                Math.abs(max.getX() - min.getX()) / tilesPerZoom
-                );
+        return degreesPerTile[zoom];
     }
 
     /**
